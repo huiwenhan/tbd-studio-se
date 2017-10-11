@@ -77,9 +77,9 @@ public class CDH5120Distribution extends AbstractDistribution implements ICloude
         HCatalogComponent, PigComponent, MRComponent, HiveComponent, HiveOnSparkComponent, ImpalaComponent, SqoopComponent,
         SparkBatchComponent, SparkStreamingComponent {
 
-    public final static String VERSION = "Cloudera_CDH5_10";
+    public final static String VERSION = "Cloudera_CDH5_12";
 
-    public static final String VERSION_DISPLAY = "Cloudera CDH5.10(YARN mode)";
+    public static final String VERSION_DISPLAY = "Cloudera CDH5.12(YARN mode)";
 
     private final static String YARN_APPLICATION_CLASSPATH = "$HADOOP_CONF_DIR,$HADOOP_COMMON_HOME/*,$HADOOP_COMMON_HOME/lib/*,$HADOOP_HDFS_HOME/*,$HADOOP_HDFS_HOME/lib/*,$HADOOP_MAPRED_HOME/*,$HADOOP_MAPRED_HOME/lib/*,$YARN_HOME/*,$YARN_HOME/lib/*,$HADOOP_YARN_HOME/*,$HADOOP_YARN_HOME/lib/*,$HADOOP_COMMON_HOME/share/hadoop/common/*,$HADOOP_COMMON_HOME/share/hadoop/common/lib/*,$HADOOP_HDFS_HOME/share/hadoop/hdfs/*,$HADOOP_HDFS_HOME/share/hadoop/hdfs/lib/*,$HADOOP_YARN_HOME/share/hadoop/yarn/*,$HADOOP_YARN_HOME/share/hadoop/yarn/lib/*"; //$NON-NLS-1$
 
@@ -492,6 +492,6 @@ public class CDH5120Distribution extends AbstractDistribution implements ICloude
 
     @Override
     public boolean doSupportAzureDataLakeStorage() {
-        return false;
+        return true;
     }
 }
