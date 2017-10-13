@@ -29,26 +29,16 @@ import org.talend.hadoop.distribution.constants.SparkStreamingConstant;
 
 public class CDH5120SparkStreamingModuleGroup {
 
-    private final static ComponentCondition spark16Condition = new MultiComponentCondition(
-            new BasicExpression(SparkBatchConstant.SPARK_LOCAL_MODE_PARAMETER, EqualityOperator.EQ, "false"),
-            BooleanOperator.AND, 
-            new BasicExpression("SUPPORTED_SPARK_VERSION", EqualityOperator.EQ, ESparkVersion.SPARK_1_6.getSparkVersion()));
+    private final static ComponentCondition condition = new SimpleComponentCondition(
+            new BasicExpression(SparkBatchConstant.SPARK_LOCAL_MODE_PARAMETER, EqualityOperator.EQ, "false"));
     
-    private final static ComponentCondition spark21Condition = new MultiComponentCondition(
-            new BasicExpression(SparkBatchConstant.SPARK_LOCAL_MODE_PARAMETER, EqualityOperator.EQ, "false"),
-            BooleanOperator.AND, 
-            new BasicExpression("SUPPORTED_SPARK_VERSION", EqualityOperator.EQ, ESparkVersion.SPARK_2_1.getSparkVersion()));
 
     public static Set<DistributionModuleGroup> getModuleGroups() {
         Set<DistributionModuleGroup> hs = new HashSet<>();
-        hs.add(new DistributionModuleGroup(CDH5120Constant.SPARK_MODULE_GROUP.getModuleName(), false, spark16Condition));
-        hs.add(new DistributionModuleGroup(CDH5120Constant.SPARK2_MODULE_GROUP.getModuleName(), false, spark21Condition));
-        hs.add(new DistributionModuleGroup(CDH5120Constant.HDFS_MODULE_GROUP_SPARK1_6.getModuleName(), false, spark16Condition));
-        hs.add(new DistributionModuleGroup(CDH5120Constant.HDFS_MODULE_GROUP_SPARK2_1.getModuleName(), false, spark21Condition));
-        hs.add(new DistributionModuleGroup(CDH5120Constant.HDFS_MODULE_GROUP_COMMON.getModuleName(), false, spark16Condition));
-        hs.add(new DistributionModuleGroup(CDH5120Constant.HDFS_MODULE_GROUP_COMMON.getModuleName(), false, spark21Condition));
-        hs.add(new DistributionModuleGroup(CDH5120Constant.MAPREDUCE_MODULE_GROUP.getModuleName(), false, spark16Condition));
-        hs.add(new DistributionModuleGroup(CDH5120Constant.MAPREDUCE_MODULE_GROUP.getModuleName(), false, spark21Condition));
+        hs.add(new DistributionModuleGroup(CDH5120Constant.SPARK2_MODULE_GROUP.getModuleName(), false, condition));
+        hs.add(new DistributionModuleGroup(CDH5120Constant.HDFS_MODULE_GROUP_SPARK2_2.getModuleName(), false, condition));
+        hs.add(new DistributionModuleGroup(CDH5120Constant.HDFS_MODULE_GROUP_COMMON.getModuleName(), false, condition));
+        hs.add(new DistributionModuleGroup(CDH5120Constant.MAPREDUCE_MODULE_GROUP.getModuleName(), false, condition));
         return hs;
     }
 

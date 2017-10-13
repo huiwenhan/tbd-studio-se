@@ -133,8 +133,9 @@ public class CDH5120Distribution extends AbstractDistribution implements ICloude
         nodeModuleGroups.put(
                 new NodeComponentTypeBean(ComponentType.SPARKBATCH, SparkBatchConstant.AZURE_CONFIGURATION_COMPONENT),
                 CDH5120SparkBatchAzureNodeModuleGroup.getModuleGroups(distribution, version));
-        nodeModuleGroups.put(new NodeComponentTypeBean(ComponentType.SPARKSTREAMING, SparkStreamingConstant.AZURE_CONFIGURATION_COMPONENT), 
-                CDH5120SparkBatchAzureNodeModuleGroup.getModuleGroups(distribution, version));
+        nodeModuleGroups.put(new NodeComponentTypeBean(ComponentType.SPARKSTREAMING,
+                SparkStreamingConstant.AZURE_CONFIGURATION_COMPONENT), CDH5120SparkBatchAzureNodeModuleGroup.getModuleGroups(
+                distribution, version));
 
         // Kudu
         Set<DistributionModuleGroup> kuduNodeModuleGroups = CDH5120SparkBatchKuduNodeModuleGroup.getModuleGroups(distribution,
@@ -394,7 +395,7 @@ public class CDH5120Distribution extends AbstractDistribution implements ICloude
 
     @Override
     public boolean doSupportClouderaNavigator() {
-        return true;
+        return true; 
     }
 
     @Override
@@ -405,8 +406,7 @@ public class CDH5120Distribution extends AbstractDistribution implements ICloude
     @Override
     public Set<ESparkVersion> getSparkVersions() {
         Set<ESparkVersion> version = new HashSet<>();
-        version.add(ESparkVersion.SPARK_1_6);
-        version.add(ESparkVersion.SPARK_2_1);
+        version.add(ESparkVersion.SPARK_2_2);
         return version;
     }
 
@@ -468,11 +468,7 @@ public class CDH5120Distribution extends AbstractDistribution implements ICloude
     @Override
     public SparkStreamingKafkaVersion getSparkStreamingKafkaVersion(ESparkVersion sparkVersion) {
         // Using Kafka 0.10 for Spark 2
-        if (ESparkVersion.SPARK_2_0.compareTo(sparkVersion) <= 0) {
-            return SparkStreamingKafkaVersion.KAFKA_0_10;
-        } else {
-            return SparkStreamingKafkaVersion.KAFKA_0_8;
-        }
+        return SparkStreamingKafkaVersion.KAFKA_0_10;
     }
 
     @Override
@@ -484,7 +480,7 @@ public class CDH5120Distribution extends AbstractDistribution implements ICloude
     public boolean doImportDynamoDBDependencies() {
         return true;
     }
-    
+
     @Override
     public boolean doSupportAzureBlobStorage() {
         return true;

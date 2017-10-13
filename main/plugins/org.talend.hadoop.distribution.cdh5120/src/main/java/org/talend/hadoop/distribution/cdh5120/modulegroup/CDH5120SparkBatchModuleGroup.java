@@ -28,28 +28,15 @@ import org.talend.hadoop.distribution.constants.SparkBatchConstant;
 
 public class CDH5120SparkBatchModuleGroup {
 
-    private final static ComponentCondition condition = new MultiComponentCondition(
-            new BasicExpression(SparkBatchConstant.SPARK_LOCAL_MODE_PARAMETER, EqualityOperator.EQ, "false"),
-            BooleanOperator.AND, 
-            new BasicExpression("SUPPORTED_SPARK_VERSION", EqualityOperator.EQ, ESparkVersion.SPARK_1_6.getSparkVersion()));
+    private final static ComponentCondition condition = new SimpleComponentCondition(
+            new BasicExpression(SparkBatchConstant.SPARK_LOCAL_MODE_PARAMETER, EqualityOperator.EQ, "false"));
     
-    private final static ComponentCondition conditionSpark2_1 = new MultiComponentCondition(
-            new BasicExpression(SparkBatchConstant.SPARK_LOCAL_MODE_PARAMETER, EqualityOperator.EQ, "false"),
-            BooleanOperator.AND, 
-            new BasicExpression("SUPPORTED_SPARK_VERSION", EqualityOperator.EQ, ESparkVersion.SPARK_2_1.getSparkVersion()));
-
     public static Set<DistributionModuleGroup> getModuleGroups() {
         Set<DistributionModuleGroup> hs = new HashSet<>();
-        hs.add(new DistributionModuleGroup(CDH5120Constant.SPARK_MODULE_GROUP.getModuleName(), false, condition));
-        hs.add(new DistributionModuleGroup(CDH5120Constant.SPARK2_MODULE_GROUP.getModuleName(), false, conditionSpark2_1));
-        hs.add(new DistributionModuleGroup(CDH5120Constant.SPARK_MRREQUIRED_MODULE_GROUP.getModuleName(), true, condition));
-        hs.add(new DistributionModuleGroup(CDH5120Constant.SPARK_MRREQUIRED_MODULE_GROUP.getModuleName(), true, conditionSpark2_1));
-        hs.add(new DistributionModuleGroup(CDH5120Constant.HDFS_MODULE_GROUP_SPARK1_6.getModuleName(), false, condition));
-        hs.add(new DistributionModuleGroup(CDH5120Constant.HDFS_MODULE_GROUP_SPARK2_1.getModuleName(), false, conditionSpark2_1));
+        hs.add(new DistributionModuleGroup(CDH5120Constant.SPARK2_MODULE_GROUP.getModuleName(), false, condition));
+        hs.add(new DistributionModuleGroup(CDH5120Constant.HDFS_MODULE_GROUP_SPARK2_2.getModuleName(), false, condition));
         hs.add(new DistributionModuleGroup(CDH5120Constant.HDFS_MODULE_GROUP_COMMON.getModuleName(), false, condition));
-        hs.add(new DistributionModuleGroup(CDH5120Constant.HDFS_MODULE_GROUP_COMMON.getModuleName(), false, conditionSpark2_1));
         hs.add(new DistributionModuleGroup(CDH5120Constant.MAPREDUCE_MODULE_GROUP.getModuleName(), false, condition));
-        hs.add(new DistributionModuleGroup(CDH5120Constant.MAPREDUCE_MODULE_GROUP.getModuleName(), false, conditionSpark2_1));
         ComponentCondition conditionUseNavigator = new SimpleComponentCondition(new BasicExpression(
                 SparkBatchConstant.USE_CLOUDERA_NAVIGATOR));
         hs.add(new DistributionModuleGroup(CDH5120Constant.TALEND_CLOUDERA_CDH_5_12_NAVIGATOR.getModuleName(), true,

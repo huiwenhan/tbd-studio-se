@@ -37,7 +37,7 @@ public class CDH5120SparkBatchKuduNodeModuleGroup {
                 EqualityOperator.EQ, //
                 supportedSparkVersion));
         ComponentCondition cc2 = new SimpleComponentCondition(new BasicExpression(
-                "KUDU_VERSION", EqualityOperator.EQ, "KUDU_1.2.0")); //$NON-NLS-1$//$NON-NLS-2$
+                "KUDU_VERSION", EqualityOperator.EQ, "KUDU_1.4.0")); //$NON-NLS-1$//$NON-NLS-2$
         return new MultiComponentCondition(cc1, BooleanOperator.AND, cc2);
     }
 
@@ -45,17 +45,13 @@ public class CDH5120SparkBatchKuduNodeModuleGroup {
 
         Set<DistributionModuleGroup> dmg = new HashSet<>();
 
-        ComponentCondition cc16 = getComponentCondition("SPARK_1_6_0"); //$NON-NLS-1$
-        ComponentCondition cc21 = getComponentCondition("SPARK_2_1_0"); //$NON-NLS-1$
+        ComponentCondition cc22 = getComponentCondition("SPARK_2_2_0"); //$NON-NLS-1$
         if (condition != null) {
             ComponentCondition c = new SimpleComponentCondition(new RawExpression(condition));
-            cc16 = new MultiComponentCondition(cc16, BooleanOperator.AND, c);
-            cc21 = new MultiComponentCondition(cc21, BooleanOperator.AND, c);
+            cc22 = new MultiComponentCondition(cc22, BooleanOperator.AND, c);
         }
 
-        dmg.addAll(ModuleGroupsUtils.getModuleGroups(distribution, version, cc16.getConditionString(),
-                CDH5120Constant.SPARK_KUDU_MRREQUIRED_MODULE_GROUP.getModuleName(), true));
-        dmg.addAll(ModuleGroupsUtils.getModuleGroups(distribution, version, cc21.getConditionString(),
+        dmg.addAll(ModuleGroupsUtils.getModuleGroups(distribution, version, cc22.getConditionString(),
                 CDH5120Constant.SPARK2_KUDU_MRREQUIRED_MODULE_GROUP.getModuleName(), true));
         return dmg;
     }
