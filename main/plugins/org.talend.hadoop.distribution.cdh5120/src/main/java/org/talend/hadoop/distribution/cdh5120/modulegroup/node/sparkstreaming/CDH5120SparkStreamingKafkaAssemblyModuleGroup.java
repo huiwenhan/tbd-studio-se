@@ -32,32 +32,20 @@ import org.talend.hadoop.distribution.constants.cdh.IClouderaDistribution;
 
 public class CDH5120SparkStreamingKafkaAssemblyModuleGroup {
 
-    private final static ComponentCondition spark16Condition = new SimpleComponentCondition(new LinkedNodeExpression(
+    private final static ComponentCondition condition = new SimpleComponentCondition(new LinkedNodeExpression(
             SparkStreamingConstant.KAFKA_SPARKCONFIGURATION_LINKEDPARAMETER, "SUPPORTED_SPARK_VERSION", EqualityOperator.EQ,
-            ESparkVersion.SPARK_1_6.getSparkVersion()));
-
-    private final static ComponentCondition spark21Condition = new SimpleComponentCondition(new LinkedNodeExpression(
-            SparkStreamingConstant.KAFKA_SPARKCONFIGURATION_LINKEDPARAMETER, "SUPPORTED_SPARK_VERSION", EqualityOperator.EQ,
-            ESparkVersion.SPARK_2_1.getSparkVersion()));
+            ESparkVersion.SPARK_2_2.getSparkVersion()));
 
     public static Set<DistributionModuleGroup> getModuleGroups(String distribution, String version) {
         Set<DistributionModuleGroup> hs = new HashSet<>();
         
-        // Spark 1.6 Kafka assembly
-        DistributionModuleGroup dmgSpark16 = new DistributionModuleGroup(
-                CDH5120Constant.SPARK_KAFKA_ASSEMBLY_MRREQUIRED_MODULE_GROUP.getModuleName(), true, new NestedComponentCondition(new MultiComponentCondition(
-                        new SparkStreamingLinkedNodeCondition(distribution, version,
-                                SparkStreamingConstant.KAFKA_SPARKCONFIGURATION_LINKEDPARAMETER).getCondition(),
-                        BooleanOperator.AND, spark16Condition)));
-        hs.add(dmgSpark16);
-        
-        // Spark 2.1 Kafka assembly
-        DistributionModuleGroup dmgSpark21 = new DistributionModuleGroup(
+        // Spark 2.2 Kafka assembly
+        DistributionModuleGroup dmgSpark22 = new DistributionModuleGroup(
                 CDH5120Constant.SPARK2_KAFKA_ASSEMBLY_MRREQUIRED_MODULE_GROUP.getModuleName(), true, new NestedComponentCondition(new MultiComponentCondition(
                         new SparkStreamingLinkedNodeCondition(distribution, version,
                                 SparkStreamingConstant.KAFKA_SPARKCONFIGURATION_LINKEDPARAMETER).getCondition(),
-                        BooleanOperator.AND, spark21Condition)));
-        hs.add(dmgSpark21);
+                        BooleanOperator.AND, condition)));
+        hs.add(dmgSpark22);
         
         return hs;
     }

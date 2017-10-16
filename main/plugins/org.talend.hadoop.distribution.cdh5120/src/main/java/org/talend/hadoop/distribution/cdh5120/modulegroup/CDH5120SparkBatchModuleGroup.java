@@ -34,6 +34,7 @@ public class CDH5120SparkBatchModuleGroup {
     public static Set<DistributionModuleGroup> getModuleGroups() {
         Set<DistributionModuleGroup> hs = new HashSet<>();
         hs.add(new DistributionModuleGroup(CDH5120Constant.SPARK2_MODULE_GROUP.getModuleName(), false, condition));
+        hs.add(new DistributionModuleGroup(CDH5120Constant.SPARK_MRREQUIRED_MODULE_GROUP.getModuleName(), true, condition));
         hs.add(new DistributionModuleGroup(CDH5120Constant.HDFS_MODULE_GROUP_SPARK2_2.getModuleName(), false, condition));
         hs.add(new DistributionModuleGroup(CDH5120Constant.HDFS_MODULE_GROUP_COMMON.getModuleName(), false, condition));
         hs.add(new DistributionModuleGroup(CDH5120Constant.MAPREDUCE_MODULE_GROUP.getModuleName(), false, condition));
