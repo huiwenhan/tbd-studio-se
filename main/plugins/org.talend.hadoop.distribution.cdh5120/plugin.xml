@@ -124,6 +124,13 @@
             name="azure-common-1.7.1.jar"
             mvn_uri="mvn:org.talend.libraries/azure-common-1.7.1/6.0.0">
         </libraryNeeded>
+        
+        <libraryNeeded
+            context="plugin:org.talend.hadoop.distribution.cdh5120"
+            id="microsoft-windowsazure-storage-sdk-0.6.0.jar"
+            name="microsoft-windowsazure-storage-sdk-0.6.0.jar"
+            mvn_uri="mvn:org.talend.libraries/microsoft-windowsazure-storage-sdk-0.6.0/6.0.0">
+        </libraryNeeded>
         <!-- Azure libraries -->
 
         <!-- Map/Reduce libraries -->
@@ -1296,6 +1303,7 @@
                 <library id="hadoop-azure-datalake-2.6.05.1212.1.jar"/>
                 <library id="azure-data-lake-store-sdk-2.1.4.jar" />
                 <library id="azure-common-1.7.1.jar"/>
+                <library id="microsoft-windowsazure-storage-sdk-0.6.0.jar"/>
         </libraryNeededGroup>
 
         <!-- Pig S3 group -->
