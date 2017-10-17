@@ -1270,6 +1270,7 @@
                 id="SPARK-LIB-MRREQUIRED-CDH_5_12"
                 name="SPARK-LIB-MRREQUIRED-CDH_5_12">
              <library id="snappy-java-1.0.4.1.jar"/>
+             <library id="avro-mapred-1.7.6-cdh5.12.1-hadoop2.jar"/>
         </libraryNeededGroup>
 
         <!-- Spark Parquet group MRREQUIRED -->
