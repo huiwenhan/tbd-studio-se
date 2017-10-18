@@ -25,34 +25,16 @@ import org.talend.hadoop.distribution.condition.LinkedNodeExpression;
 import org.talend.hadoop.distribution.condition.MultiComponentCondition;
 import org.talend.hadoop.distribution.condition.RawExpression;
 import org.talend.hadoop.distribution.condition.SimpleComponentCondition;
+import org.talend.hadoop.distribution.condition.common.SparkBatchLinkedNodeCondition;
 import org.talend.hadoop.distribution.constants.SparkBatchConstant;
 import org.talend.hadoop.distribution.utils.ModuleGroupsUtils;
 
 public class CDH5120SparkBatchKuduNodeModuleGroup {
 
-    private static MultiComponentCondition getComponentCondition(String supportedSparkVersion) {
-        ComponentCondition cc1 = new SimpleComponentCondition(new LinkedNodeExpression( //
-                SparkBatchConstant.SPARK_BATCH_SPARKCONFIGURATION_LINKEDPARAMETER, //
-                "SUPPORTED_SPARK_VERSION", //$NON-NLS-1$
-                EqualityOperator.EQ, //
-                supportedSparkVersion));
-        ComponentCondition cc2 = new SimpleComponentCondition(new BasicExpression(
-                "KUDU_VERSION", EqualityOperator.EQ, "KUDU_1.4.0")); //$NON-NLS-1$//$NON-NLS-2$
-        return new MultiComponentCondition(cc1, BooleanOperator.AND, cc2);
-    }
-
     public static Set<DistributionModuleGroup> getModuleGroups(String distribution, String version, String condition) {
-
-        Set<DistributionModuleGroup> dmg = new HashSet<>();
-
-        ComponentCondition cc22 = getComponentCondition("SPARK_2_2_0"); //$NON-NLS-1$
-        if (condition != null) {
-            ComponentCondition c = new SimpleComponentCondition(new RawExpression(condition));
-            cc22 = new MultiComponentCondition(cc22, BooleanOperator.AND, c);
-        }
-
-        dmg.addAll(ModuleGroupsUtils.getModuleGroups(distribution, version, cc22.getConditionString(),
+        Set<DistributionModuleGroup> hs = new HashSet<>();
+        hs.addAll(ModuleGroupsUtils.getModuleGroups(distribution, version, condition,
                 CDH5120Constant.SPARK2_KUDU_MRREQUIRED_MODULE_GROUP.getModuleName(), true));
-        return dmg;
+        return hs;
     }
 }
