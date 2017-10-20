@@ -106,16 +106,16 @@
 
         <libraryNeeded
             context="plugin:org.talend.hadoop.distribution.cdh5130"
-            id="hadoop-azure-datalake-2.6.05.1312.1.jar"
+            id="hadoop-azure-datalake-2.6.0-cdh5.13.0.jar"
             name="hadoop-azure-datalake-2.6.0-cdh5.13.0.jar"
             mvn_uri="mvn:org.talend.libraries/hadoop-azure-datalake-2.6.0-cdh5.13.0/6.0.0">
         </libraryNeeded>
 
         <libraryNeeded
             context="plugin:org.talend.hadoop.distribution.cdh5130"
-            id="azure-data-lake-store-sdk-2.1.4.jar"
-            name="azure-data-lake-store-sdk-2.1.4.jar"
-            mvn_uri="mvn:org.talend.libraries/azure-data-lake-store-sdk-2.1.4/6.0.0">
+            id="azure-data-lake-store-sdk-2.2.3.jar"
+            name="azure-data-lake-store-sdk-2.2.3.jar"
+            mvn_uri="mvn:org.talend.libraries/azure-data-lake-store-sdk-2.2.3/6.0.0">
         </libraryNeeded>
 
         <libraryNeeded
@@ -341,6 +341,7 @@
         </libraryNeeded>
 
         <!-- GraphFrames libraries -->
+        <!-- Only can get spark 2.1 version, waiting for spark 2.2 version -->
         <libraryNeeded
             context="plugin:org.talend.hadoop.distribution.cdh5130"
             id="graphframes-0.5.0-spark2.1-s_2.11.jar"
@@ -433,6 +434,7 @@
             uripath="platform:/plugin/org.talend.libraries.jline/lib/jline-2.11.jar">
         </libraryNeeded>
 
+		<!--there is datafu-1.1.0-cdh5.13.0.jar exist, but we start to use datafu-1.2.0 from cdh 5.5-->
         <libraryNeeded
             context="plugin:org.talend.libraries.pig"
             id="datafu-1.2.0.jar"
@@ -637,13 +639,6 @@
 
         <!--libraryNeeded
             context="plugin:org.talend.hadoop.distribution.cdh5130"
-            id="spark-streaming-kinesis-asl-assembly_2.10-1.6.0-cdh5.10.1"
-            name="spark-streaming-kinesis-asl-assembly_2.10-1.6.0-cdh5.10.1.jar"
-            mvn_uri="mvn:org.talend.libraries/spark-streaming-kinesis-asl-assembly_2.10-1.6.0-cdh5.10.1/6.4.0">
-        </libraryNeeded--> <!-- Can not find this lib in CDH 5.13 !!! -->
-
-        <!--libraryNeeded
-            context="plugin:org.talend.hadoop.distribution.cdh5130"
             id="spark-streaming-kinesis-asl-assembly_2.11-2.1.0.cloudera1"
             name="spark-streaming-kinesis-asl-assembly_2.11-2.1.0.cloudera1.jar"
             mvn_uri="mvn:org.talend.libraries/spark-streaming-kinesis-asl-assembly_2.11-2.1.0.cloudera1/6.4.0">
@@ -653,9 +648,9 @@
         <!--Didn't find it yet, make sure the name after get the jar-->
         <libraryNeeded
             context="plugin:org.talend.hadoop.distribution.cdh5130"
-            id="kudu-spark2_2.11-1.4.0-cdh5.13.0.jar"
-            name="kudu-spark2_2.11-1.4.0-cdh5.13.0.jar"
-            mvn_uri="mvn:org.talend.libraries/kudu-spark2_2.11-1.4.0-cdh5.13.0/6.0.0">
+            id="kudu-spark2_2.11-1.5.0-cdh5.13.0.jar"
+            name="kudu-spark2_2.11-1.5.0-cdh5.13.0.jar"
+            mvn_uri="mvn:org.talend.libraries/kudu-spark2_2.11-1.5.0-cdh5.13.0/6.0.0">
         </libraryNeeded>
 
         <!-- Spark2 libraries -->
@@ -1201,11 +1196,11 @@
 			<library id="osgi-resource-locator-1.0.1.jar"/>
 			<library id="paranamer-2.6.jar"/>
 			<library id="parquet-avro-1.5.0-cdh5.13.0.jar"/>
-			<library id="parquet-column-1.5.0-cdh5.13.0"/>
-			<library id="parquet-common-1.5.0-cdh5.13.0"/>
-			<library id="parquet-encoding-1.5.0-cdh5.13.0"/>
-			<library id="parquet-format-2.1.0-cdh5.13.0"/>
-			<library id="parquet-hadoop-1.5.0-cdh5.13.0"/>
+			<library id="parquet-column-1.5.0-cdh5.13.0.jar"/>
+			<library id="parquet-common-1.5.0-cdh5.13.0.jar"/>
+			<library id="parquet-encoding-1.5.0-cdh5.13.0.jar"/>
+			<library id="parquet-format-2.1.0-cdh5.13.0.jar"/>
+			<library id="parquet-hadoop-1.5.0-cdh5.13.0.jar"/>
 			<library id="parquet-hadoop-bundle-1.5.0-cdh5.13.0.jar"/>
 			<library id="parquet-jackson-1.5.0-cdh5.13.0"/>
 			<library id="pmml-model-1.2.15.jar"/>
@@ -1301,8 +1296,8 @@
                 id="SPARK-AZURE-LIB-MRREQUIRED-CDH_5_13"
                 name="SPARK-AZURE-LIB-MRREQUIRED-CDH_5_13">
                 <library id="hadoop-azure-2.6.0-cdh5.13.0.jar"/>
-                <library id="hadoop-azure-datalake-2.6.05.1312.1.jar"/>
-                <library id="azure-data-lake-store-sdk-2.1.4.jar" />
+                <library id="hadoop-azure-datalake-2.6.0-cdh5.13.0.jar"/>
+                <library id="azure-data-lake-store-sdk-2.2.3.jar" />
                 <library id="azure-common-1.7.1.jar"/>
                 <library id="microsoft-windowsazure-storage-sdk-0.6.0.jar"/>
         </libraryNeededGroup>
@@ -1399,7 +1394,7 @@
                 description="Spark2 Kudu libraries for CDH 5.13 that are MRREQUIRED"
                 id="SPARK2_KUDU_MRREQUIRED_MODULE_GROUP-CDH_5_13"
                 name="SPARK2_KUDU_MRREQUIRED_MODULE_GROUP-CDH_5_13">
-            <library id="kudu-spark2_2.11-1.4.0-cdh5.13.0.jar"/>
+            <library id="kudu-spark2_2.11-1.5.0-cdh5.13.0.jar"/>
         </libraryNeededGroup>
         
         <!-- group of cloudera navigator libraries -->
