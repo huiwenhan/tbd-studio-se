@@ -23,69 +23,99 @@
     </DOCUMENTATION>
 
     <CONNECTORS>
-
+        <CONNECTOR CTYPE="FLOW"
+                   MAX_INPUT="1"
+                   MAX_OUTPUT="1"
+                   MIN_INPUT="0"
+                   MIN_OUTPUT="0" />
+        <CONNECTOR CTYPE="ITERATE"
+                   MAX_OUTPUT="1"
+                   MAX_INPUT="1" />
         <CONNECTOR CTYPE="SUBJOB_OK"
-                   MAX_INPUT="1"
-                   MAX_OUTPUT="1"
-                   MIN_INPUT="0"
-                   MIN_OUTPUT="0"/>
-
+                   MAX_INPUT="1" />
         <CONNECTOR CTYPE="SUBJOB_ERROR"
-                   MAX_INPUT="1"
-                   MAX_OUTPUT="1"
-                   MIN_INPUT="0"
-                   MIN_OUTPUT="0"/>
-
+                   MAX_INPUT="1" />
         <CONNECTOR CTYPE="COMPONENT_OK"
-                   MAX_INPUT="1"
+                   MAX_INPUT="0"
                    MAX_OUTPUT="1"
                    MIN_INPUT="0"
-                   MIN_OUTPUT="0"/>
-
+                   MIN_OUTPUT="0" />
         <CONNECTOR CTYPE="COMPONENT_ERROR"
                    MAX_INPUT="0"
                    MAX_OUTPUT="1"
                    MIN_INPUT="0"
-                   MIN_OUTPUT="0"/>
-
-        <CONNECTOR CTYPE="FLOW"
-                   MAX_INPUT="0"
-                   MAX_OUTPUT="0"
-                   MIN_INPUT="0"
-                   MIN_OUTPUT="0"/>
-
+                   MIN_OUTPUT="0" />
+        <CONNECTOR CTYPE="RUN_IF" />
     </CONNECTORS>
 
     <PARAMETERS>
+
         <PARAMETER NAME="CONNECTION"
                    FIELD="COMPONENT_LIST"
                    REQUIRED="true"
-                   FILTER="tNeo4jBatchDatabaseConnection"
+                   FILTER="tNeo4jConnection"
                    NUM_ROW="1"
                    GROUP="CONNECTION_GROUP"/>
 
-        <PARAMETER NAME="SCHEMA"
-                    FIELD="TABLE"
-                    GROUP="SCHEMA_GROUP"
-                    NUM_ROW="10"
-                    NB_LINES="10">
-
-            <ITEMS>
-                <ITEM NAME="TYPE" FIELD="CLOSED_LIST">
-                    <ITEMS DEFAULT="NODE_PROPERTY_UNIQUE">
-                        <ITEM NAME="NODE_PROPERTY_UNIQUE" VALUE="NODE_PROPERTY_UNIQUE"/>
-                        <ITEM NAME="NODE_PROPERTY_INDEX" VALUE="NODE_PROPERTY_INDEX"/>
-                    </ITEMS>
-                </ITEM>
-                <ITEM NAME="LABEL"/>
-                <ITEM NAME="PROPERTY"/>
-            </ITEMS>
-
+        <PARAMETER NAME="RELATIONSHIP_TYPE"
+                   FIELD="COLUMN_LIST"
+                   REQUIRED="true"
+                   GROUP="RELATIONSHIP_GROUP"
+                   NUM_ROW="2">
         </PARAMETER>
+
+        <PARAMETER NAME="RELATIONSHIP_DIRECTION"
+                   FIELD="CLOSED_LIST"
+                   REQUIRED="true"
+                   GROUP="RELATIONSHIP_GROUP"
+                   NUM_ROW="3">
+            <ITEMS DEFAULT="OUTGOING">
+                <ITEM NAME="OUTGOING" VALUE="OUTGOING" />
+                <ITEM NAME="INCOMING" VALUE="INCOMING" />
+            </ITEMS>
+        </PARAMETER>
+
+        <PARAMETER NAME="START_INDEX_NAME"
+                   FIELD="COMPONENT_LIST"
+                   FILTER="tNeo4jBatchOutput"
+                   REQUIRED="true"
+                   NUM_ROW="5"
+                   GROUP="START_NODE_GROUP" />
+
+        <PARAMETER NAME="START_INDEX_FIELD"
+                   FIELD="COLUMN_LIST"
+                   REQUIRED="true"
+                   NUM_ROW="6"
+                   GROUP="START_NODE_GROUP" />
+
+
+        <PARAMETER NAME="END_INDEX_NAME"
+                   FIELD="COMPONENT_LIST"
+                   FILTER="tNeo4jBatchOutput"
+                   REPOSITORY_VALUE="NEO4J_BATCH_INDEXNAME"
+                   REQUIRED="true"
+                   NUM_ROW="8"
+                   GROUP="END_NODE_GROUP" />
+
+        <PARAMETER NAME="END_INDEX_FIELD"
+                   FIELD="COLUMN_LIST"
+                   REQUIRED="true"
+                   NUM_ROW="9"
+                   GROUP="END_NODE_GROUP" />
 
     </PARAMETERS>
 
+
     <ADVANCED_PARAMETERS>
+
+        <PARAMETER
+                NAME="SKIP_ON_ERROR"
+                FIELD="CHECK"
+                REQUIRED="true"
+                NUM_ROW="1">
+            <DEFAULT>true</DEFAULT>
+        </PARAMETER>
+
     </ADVANCED_PARAMETERS>
 
     <CODEGENERATION>
@@ -146,6 +176,6 @@
     </CODEGENERATION>
 
     <RETURNS>
+        <RETURN AVAILABILITY="AFTER" NAME="NB_LINE" TYPE="id_Integer" />
     </RETURNS>
-
 </COMPONENT>

@@ -23,66 +23,80 @@
     </DOCUMENTATION>
 
     <CONNECTORS>
-
+        <CONNECTOR CTYPE="FLOW"
+                   MAX_INPUT="1"
+                   MAX_OUTPUT="1"
+                   MIN_INPUT="0"
+                   MIN_OUTPUT="0" />
+        <CONNECTOR CTYPE="ITERATE"
+                   MAX_OUTPUT="1"
+                   MAX_INPUT="1" />
         <CONNECTOR CTYPE="SUBJOB_OK"
-                   MAX_INPUT="1"
-                   MAX_OUTPUT="1"
-                   MIN_INPUT="0"
-                   MIN_OUTPUT="0"/>
-
+                   MAX_INPUT="1" />
         <CONNECTOR CTYPE="SUBJOB_ERROR"
-                   MAX_INPUT="1"
-                   MAX_OUTPUT="1"
-                   MIN_INPUT="0"
-                   MIN_OUTPUT="0"/>
-
+                   MAX_INPUT="1" />
         <CONNECTOR CTYPE="COMPONENT_OK"
-                   MAX_INPUT="1"
+                   MAX_INPUT="0"
                    MAX_OUTPUT="1"
                    MIN_INPUT="0"
-                   MIN_OUTPUT="0"/>
-
+                   MIN_OUTPUT="0" />
         <CONNECTOR CTYPE="COMPONENT_ERROR"
                    MAX_INPUT="0"
                    MAX_OUTPUT="1"
                    MIN_INPUT="0"
-                   MIN_OUTPUT="0"/>
-
-        <CONNECTOR CTYPE="FLOW"
-                   MAX_INPUT="0"
-                   MAX_OUTPUT="0"
-                   MIN_INPUT="0"
-                   MIN_OUTPUT="0"/>
-
+                   MIN_OUTPUT="0" />
+        <CONNECTOR CTYPE="RUN_IF" />
     </CONNECTORS>
 
     <PARAMETERS>
-
-        <PARAMETER NAME="DATABASE_PATH"
-                   FIELD="DIRECTORY"
+        <PARAMETER NAME="CONNECTION"
+                   FIELD="COMPONENT_LIST"
                    REQUIRED="true"
+                   FILTER="tNeo4jConnection"
+                   NUM_ROW="1"
+                   GROUP="CONNECTION_GROUP"/>
+
+        <PARAMETER NAME="LABEL_FIELD"
+                   FIELD="COLUMN_LIST"
                    NUM_ROW="2"
-                   GROUP="CONNECTION_GROUP">
-            <DEFAULT>""</DEFAULT>
+                   GROUP="SCHEMA_GROUP">
+            <DEFAULT>"label"</DEFAULT>
+        </PARAMETER>
+
+        <PARAMETER NAME="IMPORT_INDEX_NAME"
+                   FIELD="TEXT"
+                   REPOSITORY_VALUE="NEO4J_BATCH_INDEXNAME"
+                   REQUIRED="true"
+                   NUM_ROW="3"
+                   GROUP="IMPORT_INDEX_GROUP" >
+            <DEFAULT>"ALL_NODE"</DEFAULT>
+        </PARAMETER>
+
+        <PARAMETER NAME="IMPORT_ID_FIELD"
+                   FIELD="COLUMN_LIST"
+                   REQUIRED="true"
+                   NUM_ROW="4"
+                   GROUP="IMPORT_INDEX_GROUP" />
+
+        <PARAMETER
+                NAME="INSERT_IMPORT_ID_FIELD"
+                FIELD="CHECK"
+                REQUIRED="true"
+                NUM_ROW="5"
+                GROUP="IMPORT_INDEX_GROUP" >
+            <DEFAULT>true</DEFAULT>
+        </PARAMETER>
+
+        <PARAMETER NAME="IMPORT_INDEX_CACHE_SIZE"
+                   FIELD="INTEGER"
+                   NUM_ROW="6"
+                   GROUP="IMPORT_INDEX_GROUP">
+            <DEFAULT>0</DEFAULT>
         </PARAMETER>
 
     </PARAMETERS>
 
     <ADVANCED_PARAMETERS>
-
-        <PARAMETER NAME="CONFIGURATION"
-                   FIELD="TABLE"
-                   GROUP="FINE_TUNING_GROUP"
-                   NUM_ROW="10"
-                   NB_LINES="10">
-
-            <ITEMS>
-                <ITEM NAME="KEY" VALUE="dbms.pagecache.memory"/>
-                <ITEM NAME="VALUE" VALUE="2G"/>
-            </ITEMS>
-
-        </PARAMETER>
-
     </ADVANCED_PARAMETERS>
 
     <CODEGENERATION>
@@ -143,6 +157,7 @@
     </CODEGENERATION>
 
     <RETURNS>
+        <RETURN AVAILABILITY="AFTER" NAME="NB_LINE" TYPE="id_Integer"/>
     </RETURNS>
 
 </COMPONENT>
