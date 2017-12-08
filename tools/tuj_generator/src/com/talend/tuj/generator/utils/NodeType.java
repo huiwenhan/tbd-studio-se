@@ -6,7 +6,9 @@ public enum NodeType {
     CONTEXT("context"),
     CONNECTION("connection"),
     SUBJOB("subjob"),
-    TALENDPROPERTY("TalendProperties:Property");
+    TPProperty("TalendProperties:Property"),
+    TPItemState("TalendProperties:ItemState"),
+    TPProcessItem("TalendProperties:ProcessItem");
 
     private String xmlNodeName;
 

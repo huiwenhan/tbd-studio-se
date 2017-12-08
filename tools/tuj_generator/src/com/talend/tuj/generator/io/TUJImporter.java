@@ -1,5 +1,6 @@
 package com.talend.tuj.generator.io;
 
+import com.talend.tuj.generator.exception.NotWellMadeTUJException;
 import com.talend.tuj.generator.utils.Job;
 import com.talend.tuj.generator.utils.TUJ;
 import com.talend.tuj.generator.conf.TUJGeneratorConfiguration;
@@ -13,96 +14,25 @@ import java.nio.file.*;
 import java.util.*;
 
 public class TUJImporter {
-    public static List<TUJ> importTUJ(TUJGeneratorConfiguration conf){
+    private DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 
-        List<Path> contextFiles = new ArrayList<>();
-        List<Path> jobRootFolders = new ArrayList<>();
-        Path tujProject = null;
+    public List<TUJ> importTUJ(TUJGeneratorConfiguration conf){
+        Path rootFolder = FileSystems.getDefault().getPath(conf.get("input"));
 
-        Path root = FileSystems.getDefault().getPath("test","original", "spark_local_basics_j01_210");
-
-        String tujName = root.getFileName().toString();
-        String projectName = "";
-
-        if(Files.isDirectory(root)){
-        try(DirectoryStream<Path> rootFolder = Files.newDirectoryStream(root)){
-            for(Path studioProject : rootFolder){ // list of projects
-                projectName = studioProject.getFileName().toString();
-                if(Files.isDirectory(studioProject)){
-                try(DirectoryStream<Path> studioProjectFolder = Files.newDirectoryStream(studioProject)){
-                    for(Path process : studioProjectFolder){ // Context, process, process_mr, process_storm
-                        if(process.endsWith("context")){
-                            try(DirectoryStream<Path> contextFolder = Files.newDirectoryStream(process)){
-                                for(Path contextFile : contextFolder){ // context files
-                                    contextFiles.add(contextFile);
-                                }
-                            }
-                        }
-                        else if(process.endsWith("process") || process.endsWith("process_mr") || process.endsWith("process_storm")){
-                            try(DirectoryStream<Path> processFolder = Files.newDirectoryStream(process)){
-                                for(Path jobRoot : processFolder){ // process folders
-                                    jobRootFolders.add(jobRoot);
-                                }
-                            }
-                        }
-                        else if(process.endsWith("talend.project")){
-                            tujProject = process;
-                        }
-                    }
-                }
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        }
-
-        Map<String, Job> jobs = new HashMap<>();
-        try {
-            DocumentBuilder dBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-
-            for(Path rootFolder : jobRootFolders){
-                Path itemTmp = null, propertiesTmp = null;
-
-                try(DirectoryStream<Path> jobFiles = Files.newDirectoryStream(rootFolder)){
-                    for(Path file : jobFiles){
-                        if(file.toString().contains(".item")){
-                            itemTmp = file;
-                        }
-                        else if(file.toString().contains(".properties")){
-                            propertiesTmp = file;
-                        }
-
-                    }
-                }
-
-                Job jobTmp = new Job(
-                        dBuilder.parse(propertiesTmp.toString()),
-                        dBuilder.parse(itemTmp.toString()),
-                        rootFolder.getFileName()
-                );
-                jobs.put(jobTmp.getId(), jobTmp);
-            }
-            List<TUJ> tujs = new ArrayList<>();
-
-            TUJ tuj = new TUJ(
-                    generateJobHierarchy(jobs),
-                    dBuilder.parse(tujProject.toString()),
-                    tujName,
-                    projectName
-            );
-            tujs.add(tuj);
-
-            return tujs;
-
-        } catch (ParserConfigurationException | NullPointerException | IOException | SAXException e) {
-            e.printStackTrace();
-        }
-        System.exit(2);
-        return null;
+        return findTUJInFolder(rootFolder);
     }
 
-    private static Job generateJobHierarchy(Map<String, Job> jobMap){
+    private Job generateJobHierarchy(List<Job> jobList) throws NotWellMadeTUJException {
+        Map<String, Job> jobMap = new HashMap<>();
+
+        for (Job job : jobList){
+            jobMap.put(job.getId(), job);
+        }
+
+        return generateJobHierarchy(jobMap);
+    }
+
+    private Job generateJobHierarchy(Map<String, Job> jobMap) throws NotWellMadeTUJException {
         Map<String, List<String>> jobHierarchy = new HashMap<>();
 
         for (Job job : jobMap.values()){
@@ -122,10 +52,136 @@ public class TUJImporter {
             return jobMap.get(jobIds.iterator().next());
         }
 
-        System.err.println("TUJ is not well made");
-        System.exit(1);
-        return null;
+        throw new NotWellMadeTUJException("TUJ is not well made");
     }
 
+    private List<TUJ> findTUJInFolder(Path rootFolder){
+        List<TUJ> tujs = new ArrayList<>();
 
+        try(DirectoryStream<Path> root = Files.newDirectoryStream(rootFolder)){
+            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+
+            for(Path tujRoot : root){
+                try {
+                if(Files.isDirectory(tujRoot)){
+                    String projectName = findProjectName(tujRoot);
+                        tujs.add(new TUJ(
+                                generateJobHierarchy(findJobInProcessFolders(tujRoot.resolve(projectName))),
+                                dBuilder.parse(tujRoot.resolve(projectName).resolve("talend.project").toString()),
+                                findResourceInFolder(tujRoot),
+                                tujRoot.getFileName().toString(),
+                                projectName
+                        ));
+                }
+                } catch (NotWellMadeTUJException notWellMadeTUJ) {
+                    System.err.println(notWellMadeTUJ.getMessage());
+                    System.err.println("ignoring TUJ : "+tujRoot.getFileName().toString());
+                }
+            }
+        } catch (ParserConfigurationException e) {
+            e.printStackTrace();
+            System.err.println("Failed to create DocumentBuilder (XML file loader)");
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.err.println("Failed to read TUJ folders");
+        } catch (SAXException e) {
+            e.printStackTrace();
+            System.err.println("Failed to load talend.project file");
+        }
+
+        return tujs;
+    }
+
+    private List<Job> findJobInProcessFolders(Path rootFolder){
+        List<Job> jobs = new ArrayList<>();
+
+        if (Files.isDirectory(rootFolder.resolve("process"))){
+            jobs.addAll(findJobInFolder(rootFolder.resolve("process")));
+        } //else System.err.println("No DI folder");
+
+        if (Files.isDirectory(rootFolder.resolve("process_mr"))){
+            jobs.addAll(findJobInFolder(rootFolder.resolve("process_mr")));
+        } //else System.err.println("No Batch folder");
+
+        if (Files.isDirectory(rootFolder.resolve("process_storm"))){
+            jobs.addAll(findJobInFolder(rootFolder.resolve("process_storm")));
+        } //else System.err.println("No Streaming folder");
+
+        return jobs;
+    }
+
+    private List<Job> findJobInFolder(Path rootFolder){
+        return findJobInFolder(rootFolder, Optional.empty());
+    }
+
+    private List<Job> findJobInFolder(Path rootFolder, Optional<Path> folderStructure){
+        List<Job> jobs = new ArrayList<>();
+        Set<String> jobNames = new HashSet<>();
+
+        try(DirectoryStream<Path> root = Files.newDirectoryStream(rootFolder)){
+            for (Path file : root){
+                if(Files.isDirectory(file)) {
+                    if(folderStructure.isPresent()) {
+                        jobs.addAll(findJobInFolder(
+                                file,
+                                Optional.of(folderStructure.get().resolve(file.getFileName()))
+                        ));
+                    }
+                    else jobs.addAll(findJobInFolder(file, Optional.of(file.getFileName())));
+                }
+                else {
+                    String jobName = file.getFileName().toString();
+                    jobNames.add(jobName.substring(0, jobName.lastIndexOf('.')));
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.err.println("Failed to read : " + rootFolder.toString());
+        }
+
+        try {
+            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+
+            for(String jobName : jobNames){
+                jobs.add(new Job(
+                        dBuilder.parse(rootFolder.resolve(jobName + ".properties").toString()),
+                        dBuilder.parse(rootFolder.resolve(jobName + ".item").toString()),
+                        dBuilder.parse(rootFolder.resolve(jobName + ".screenshot").toString()),
+                        folderStructure
+                ));
+            }
+        } catch (ParserConfigurationException | SAXException | IOException e) {
+            e.printStackTrace();
+            System.err.println("Missing job file");
+        }
+
+        return jobs;
+    }
+
+    private List<Path> findResourceInFolder(Path rootFolder){
+        List<Path> resources = new ArrayList<>();
+
+        try(DirectoryStream<Path> root = Files.newDirectoryStream(rootFolder)){
+            for(Path resourceFile : root){
+                if(!Files.isDirectory(resourceFile)) resources.add(resourceFile.toAbsolutePath());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return resources;
+    }
+
+    private String findProjectName(Path rootFolder){
+        try(DirectoryStream<Path> root = Files.newDirectoryStream(rootFolder)){
+            for(Path projectRoot : root){
+                if(Files.isDirectory(projectRoot)) return projectRoot.getFileName().toString();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.err.println("Empty TUJ");
+        System.exit(2);
+        return "";
+    }
 }

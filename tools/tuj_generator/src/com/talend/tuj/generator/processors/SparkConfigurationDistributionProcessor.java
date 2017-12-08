@@ -1,6 +1,6 @@
 package com.talend.tuj.generator.processors;
 
-import com.talend.tuj.generator.components.IComponent;
+import com.talend.tuj.generator.elements.IElement;
 import com.talend.tuj.generator.utils.NodeType;
 
 public class SparkConfigurationDistributionProcessor implements IProcessor {
@@ -12,12 +12,12 @@ public class SparkConfigurationDistributionProcessor implements IProcessor {
     }
 
     @Override
-    public boolean shouldBeProcessed(IComponent component) {
+    public boolean shouldBeProcessed(IElement component) {
         return component.isOfType(NodeType.JOBCONFIG);
     }
 
     @Override
-    public void process(IComponent component) {
+    public void process(IElement component) {
         try{
             component.replaceParameter("SPARK_LOCAL_MODE", "false");
             component.replaceParameter("DISTRIBUTION", distribution_name);

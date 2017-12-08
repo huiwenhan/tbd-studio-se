@@ -12,7 +12,8 @@ public class Main {
     public static void main(String[] args) {
         TUJGeneratorConfiguration conf = ArgsHandler.handle(args);
 
-        List<TUJ> tujs = TUJImporter.importTUJ(conf);
+        TUJImporter importer = new TUJImporter();
+        List<TUJ> tujs = importer.importTUJ(conf);
 
 
         Migrator migrator = new Migrator(conf);

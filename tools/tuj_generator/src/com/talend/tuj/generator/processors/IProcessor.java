@@ -1,8 +1,8 @@
 package com.talend.tuj.generator.processors;
 
-import com.talend.tuj.generator.components.IComponent;
+import com.talend.tuj.generator.elements.IElement;
 
 public interface IProcessor {
-    boolean shouldBeProcessed(IComponent component);
-    void process(IComponent component);
+    boolean shouldBeProcessed(IElement component);
+    void process(IElement component);
 }

@@ -1,12 +1,12 @@
 package com.talend.tuj.generator;
 
-import com.talend.tuj.generator.components.ComponentFactory;
-import com.talend.tuj.generator.components.IComponent;
+import com.talend.tuj.generator.elements.ElementFactory;
+import com.talend.tuj.generator.elements.IElement;
 import com.talend.tuj.generator.conf.TUJGeneratorConfiguration;
-import com.talend.tuj.generator.processors.IProcessor;
-import com.talend.tuj.generator.processors.JobIDProcessor;
-import com.talend.tuj.generator.processors.SparkConfigurationLocalSparkProcessor;
+import com.talend.tuj.generator.exception.UnknownDistributionException;
+import com.talend.tuj.generator.processors.*;
 import com.talend.tuj.generator.utils.Job;
+import com.talend.tuj.generator.utils.SubstitutionCmdHandler;
 import com.talend.tuj.generator.utils.TUJ;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -17,16 +17,37 @@ import java.util.stream.Collectors;
 
 public class Migrator {
     private List<IProcessor> processors = new ArrayList<>();
-    private static ComponentFactory cpnFactory = ComponentFactory.getInstance();
+    private static ElementFactory cpnFactory = ElementFactory.getInstance();
 
     public Migrator(TUJGeneratorConfiguration conf){
-        //processors.add(new PrintProcessor());
-        processors.add(new SparkConfigurationLocalSparkProcessor("SPARK_2_2_0"));
         processors.add(new JobIDProcessor());
+        if(conf.containsKey("fileSubstitution")){
+            processors.add(new FileNameSubstitutionProcessor(SubstitutionCmdHandler.processArgument(conf.get("fileSubstitution"))));
+        }
+
+        try {
+            switch (conf.getDistributionName()){ // Register processors depending on distribution
+                case SPARK_LOCAL:
+                    processors.add(new SparkConfigurationLocalSparkProcessor(conf.get("distributionVersion")));
+                    break;
+                case CDH:
+                case HDI:
+                case HDP:
+                case MAPR:
+                    // TODO
+                    processors.add(new GenericDistributionConfigurationProcessor(conf.getDistributionName().getXmlDistributionName(), conf.get("distributionName")));
+                    processors.add(new GenericDistributionComponentConfigurationProcessor(conf.getDistributionName().getXmlDistributionName(), conf.get("distributionName")));
+                    break;
+            }
+        } catch (UnknownDistributionException e) {
+            System.err.println(e.getMessage());
+            System.exit(1);
+        }
     }
 
     public TUJ migrate(TUJ tuj){
-        navigateJob(tuj.getStarterJob());
+        System.out.println("Processing TUJ : " + tuj.getName());
+        transformJob(tuj.getStarterJob());
         return tuj;
     }
 
@@ -34,23 +55,18 @@ public class Migrator {
         return tujs.stream().map(this::migrate).collect(Collectors.toList());
     }
 
-    private void navigateJob(Job job){
-        iterateNodes(job.getProperties().getChildNodes());
-        iterateNodes(job.getItem().getChildNodes());
+    private void transformJob(Job job){
+        iterateNodes(job.getProperties().getChildNodes(), job);
+        iterateNodes(job.getItem().getChildNodes(), job);
 
-        job.getChildJobs().forEach(
-                childJob -> {
-                    iterateNodes(childJob.getProperties().getChildNodes());
-                    iterateNodes(childJob.getItem().getChildNodes());
-                }
-        );
+        job.getChildJobs().forEach(this::transformJob);
     }
 
-    private void iterateNodes(NodeList nodes){
+    private void iterateNodes(NodeList nodes, Job job){
         for (int nodeIndex = 0 ; nodeIndex < nodes.getLength() ; nodeIndex++){
             Node node = nodes.item(nodeIndex);
 
-            IComponent component = cpnFactory.createComponent(node);
+            IElement component = cpnFactory.createElement(node, job);
 
             processors.forEach(
                 processor -> {
@@ -58,7 +74,7 @@ public class Migrator {
                 }
             );
 
-            if(node.hasChildNodes()) iterateNodes(node.getChildNodes());
+            if(node.hasChildNodes()) iterateNodes(node.getChildNodes(), job);
         }
     }
 
