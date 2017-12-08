@@ -1,2 +1,5 @@
-* Distribution processors (CDH, HDP, ...) when necessary (think hdp.version=x.x.x customization)
-* Handling t\*Configuration and t\*Connection
+* Command arguments reader
+* Directory TUJ importing
+* .project, static files, .screenshot copying
+* Clean I/O code
+* Distribution processors (CDH, HDP, ...)

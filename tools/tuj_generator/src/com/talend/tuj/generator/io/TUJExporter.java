@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 public class TUJExporter {
@@ -27,18 +28,17 @@ public class TUJExporter {
     }
 
     private static void writeTUJ(TUJ tuj, TUJGeneratorConfiguration conf){
-        Path tujRoot = FileSystems.getDefault().getPath(conf.get("output"), tuj.getName());
-        tujRoot.toFile().mkdirs();
+        Path root = FileSystems.getDefault().getPath(conf.get("output"), tuj.getName(), tuj.getProjectName());
+        root.toFile().mkdirs();
 
+        // write resources here
         try {
-            for (Path inputResourcePath : tuj.getResources()){
-                Files.copy(inputResourcePath, tujRoot.resolve(inputResourcePath.getFileName().toString()));
+            for (Path resource : tuj.getResources()){
+                Files.copy(resource, root.resolve(resource.getFileName()));
             }
         } catch (IOException e) {
             e.printStackTrace();
-            System.err.println("Failed to copy resources");
         }
-
 
         List<Job> jobs = tuj.getStarterJob().getChildJobs();
         jobs.add(tuj.getStarterJob());
@@ -58,8 +58,7 @@ public class TUJExporter {
                         break;
                 }
 
-                Path jobFolder = tujRoot.resolve(tuj.getProjectName()).resolve(processFolder);
-                if(job.getFsPath().isPresent()) jobFolder = jobFolder.resolve(job.getFsPath().get());
+                Path jobFolder = root.resolve(processFolder).resolve(job.getFsPath().orElse(Paths.get("")));
                 jobFolder.toFile().mkdirs();
 
                 File itemFile = jobFolder.resolve(job.getName()+"_"+job.getVersion()+".item").toFile();
@@ -72,7 +71,8 @@ public class TUJExporter {
 
                 File screenshotFile = jobFolder.resolve(job.getName()+"_"+job.getVersion()+".screenshot").toFile();
                 screenshotFile.createNewFile();
-                transformer.transform(new DOMSource(job.getProperties()), new StreamResult(new FileWriter(screenshotFile)));
+                transformer.transform(new DOMSource(job.getScreenshot()), new StreamResult(new FileWriter(screenshotFile)));
+
             }
 
         } catch (IOException | TransformerException e) {
@@ -81,4 +81,6 @@ public class TUJExporter {
 
 
     }
+
+
 }

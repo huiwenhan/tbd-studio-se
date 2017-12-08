@@ -1,5 +1,6 @@
 package com.talend.tuj.generator.utils;
 
+import com.talend.tuj.generator.utils.Job;
 import org.w3c.dom.Document;
 
 import java.nio.file.Path;

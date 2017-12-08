@@ -14,15 +14,15 @@ public class Job {
     private List<Job> childJobs;
     private Document properties;
     private Document item;
-    private Document screenshot; // Historical file needed but unused
+    private Document screenshot;
     private String id;
     private String name;
     private JobType jobType;
     private JobFramework framework;
     private String version;
-    private Optional<TUJ> tuj = Optional.empty();
 
-    private Optional<Path> fsPath = Optional.empty();
+    private Optional<Path> fsPath;
+    private Optional<TUJ> tuj = Optional.empty();
 
     public Job(Document properties, Document item, Document screenshot, Optional<Path> jobPath){
         this.properties = properties;
@@ -39,35 +39,31 @@ public class Job {
         this.id = Optional.of(properties.getElementsByTagName("TalendProperties:Property").item(0).getAttributes().getNamedItem("id").getNodeValue()).orElse("null");
     }
 
-    public Optional<TUJ> getTuj() {
-        return tuj;
-    }
-
-    public void setTuj(TUJ tuj){
-        this.tuj = Optional.of(tuj);
-    }
-
     public String getId() {
         return id;
     }
 
-    public String getVersion() {
-        return version;
+    public Optional<TUJ> getTuj() {
+        return tuj;
+    }
+
+    public void setTuj(TUJ tuj) {
+        this.tuj = Optional.of(tuj);
     }
 
     public void addChildJob(Job job){
         this.childJobs.add(job);
     }
 
-    public Document getItem(){
+    public Node getItem(){
         return item;
     }
 
-    public Document getProperties(){
+    public Node getProperties(){
         return properties;
     }
 
-    public Document getScreenshot(){
+    public Document getScreenshot() {
         return screenshot;
     }
 
@@ -89,6 +85,10 @@ public class Job {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getVersion() {
+        return version;
     }
 
     public JobType getType() {
@@ -123,13 +123,11 @@ public class Job {
     }
 
     private void writeJobTypeAndFramework(){
-        NamedNodeMap attributes = this.item.getElementsByTagName("talendfile:ProcessType").item(0).getAttributes();
-        this.jobType = JobType.valueOf(attributes.getNamedItem("jobType").getNodeValue().toUpperCase());
         try{
+            NamedNodeMap attributes = this.item.getElementsByTagName("talendfile:ProcessType").item(0).getAttributes();
+            this.jobType = JobType.valueOf(attributes.getNamedItem("jobType").getNodeValue().toUpperCase());
             this.framework = JobFramework.valueOf(attributes.getNamedItem("framework").getNodeValue().toUpperCase());
-        } catch (NullPointerException e){
-            this.framework = JobFramework.NONE;
-        }
+        } catch (NullPointerException ignored){}
     }
 
     private void writeNameAndVersion(){

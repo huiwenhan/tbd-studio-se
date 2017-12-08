@@ -1,6 +1,7 @@
 package com.talend.tuj.generator.processors;
 
 import com.talend.tuj.generator.elements.IElement;
+import com.talend.tuj.generator.utils.JobFramework;
 import com.talend.tuj.generator.utils.NodeType;
 
 public class SparkConfigurationDistributionProcessor implements IProcessor {
@@ -13,7 +14,7 @@ public class SparkConfigurationDistributionProcessor implements IProcessor {
 
     @Override
     public boolean shouldBeProcessed(IElement component) {
-        return component.isOfType(NodeType.JOBCONFIG);
+        return (component.isJobOfFramework(JobFramework.SPARK) || component.isJobOfFramework(JobFramework.SPARK_STREAMING)) && component.isOfType(NodeType.JOBCONFIG);
     }
 
     @Override

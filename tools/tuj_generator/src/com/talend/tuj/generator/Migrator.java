@@ -1,8 +1,8 @@
 package com.talend.tuj.generator;
 
+import com.talend.tuj.generator.conf.TUJGeneratorConfiguration;
 import com.talend.tuj.generator.elements.ElementFactory;
 import com.talend.tuj.generator.elements.IElement;
-import com.talend.tuj.generator.conf.TUJGeneratorConfiguration;
 import com.talend.tuj.generator.exception.UnknownDistributionException;
 import com.talend.tuj.generator.processors.*;
 import com.talend.tuj.generator.utils.Job;
@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 
 public class Migrator {
     private List<IProcessor> processors = new ArrayList<>();
-    private static ElementFactory cpnFactory = ElementFactory.getInstance();
+    private static ElementFactory elmtFactory = ElementFactory.getInstance();
 
     public Migrator(TUJGeneratorConfiguration conf){
         processors.add(new JobIDProcessor());
@@ -26,28 +26,27 @@ public class Migrator {
         }
 
         try {
-            switch (conf.getDistributionName()){ // Register processors depending on distribution
+            switch (conf.getDistributionName()){
                 case SPARK_LOCAL:
                     processors.add(new SparkConfigurationLocalSparkProcessor(conf.get("distributionVersion")));
                     break;
                 case CDH:
-                case HDI:
-                case HDP:
                 case MAPR:
-                    // TODO
-                    processors.add(new GenericDistributionConfigurationProcessor(conf.getDistributionName().getXmlDistributionName(), conf.get("distributionName")));
-                    processors.add(new GenericDistributionComponentConfigurationProcessor(conf.getDistributionName().getXmlDistributionName(), conf.get("distributionName")));
+                case HDP:
+                case HDI:
+                case DATAPROC:
+                    processors.add(new GenericDistributionComponentConfigurationProcessor(conf.getDistributionName().getXmlDistributionName(), conf.get("distributionVersion")));
+                    processors.add(new GenericDistributionConfigurationProcessor(conf.getDistributionName().getXmlDistributionName(), conf.get("distributionVersion")));
                     break;
             }
         } catch (UnknownDistributionException e) {
-            System.err.println(e.getMessage());
-            System.exit(1);
+            e.printStackTrace();
         }
     }
 
     public TUJ migrate(TUJ tuj){
         System.out.println("Processing TUJ : " + tuj.getName());
-        transformJob(tuj.getStarterJob());
+        navigateJob(tuj.getStarterJob());
         return tuj;
     }
 
@@ -55,18 +54,18 @@ public class Migrator {
         return tujs.stream().map(this::migrate).collect(Collectors.toList());
     }
 
-    private void transformJob(Job job){
+    private void navigateJob(Job job){
         iterateNodes(job.getProperties().getChildNodes(), job);
         iterateNodes(job.getItem().getChildNodes(), job);
 
-        job.getChildJobs().forEach(this::transformJob);
+        job.getChildJobs().forEach(this::navigateJob);
     }
 
     private void iterateNodes(NodeList nodes, Job job){
         for (int nodeIndex = 0 ; nodeIndex < nodes.getLength() ; nodeIndex++){
             Node node = nodes.item(nodeIndex);
 
-            IElement component = cpnFactory.createElement(node, job);
+            IElement component = elmtFactory.createElement(node, job);
 
             processors.forEach(
                 processor -> {
