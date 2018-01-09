@@ -30,6 +30,7 @@ import org.talend.core.runtime.dynamic.IDynamicPlugin;
 import org.talend.core.runtime.dynamic.IDynamicPluginConfiguration;
 import org.talend.core.runtime.maven.MavenArtifact;
 import org.talend.core.runtime.maven.MavenUrlHelper;
+import org.talend.designer.maven.aether.comparator.VersionStringComparator;
 import org.talend.hadoop.distribution.dynamic.IDynamicDistributionPreference;
 import org.talend.hadoop.distribution.dynamic.comparator.DynamicAttributeComparator;
 
@@ -160,11 +161,14 @@ public class DynamicPluginAdapter {
         Set<String> usedModulesSet = new HashSet<String>();
         Collection<IDynamicConfiguration> moduleGroups = moduleGroupTemplateMap.values();
         Iterator<IDynamicConfiguration> moduleGroupIter = moduleGroups.iterator();
+        VersionStringComparator versionComparator = new VersionStringComparator();
         while (moduleGroupIter.hasNext()) {
             IDynamicConfiguration moduleGroup = moduleGroupIter.next();
             List<IDynamicConfiguration> childConfigurations = moduleGroup.getChildConfigurations();
             if (childConfigurations != null) {
                 Set<String> curUsedModules = new HashSet<>();
+                Set<IDynamicConfiguration> oldVersionModuleConfigs = new HashSet<>();
+                Map<String, IDynamicConfiguration> latestGaIdMap = new HashMap<>();
                 Iterator<IDynamicConfiguration> libraryIter = childConfigurations.iterator();
                 while (libraryIter.hasNext()) {
                     IDynamicConfiguration childConfig = libraryIter.next();
@@ -173,10 +177,37 @@ public class DynamicPluginAdapter {
                         if (curUsedModules.contains(libraryId)) {
                             libraryIter.remove();
                         } else {
-                            curUsedModules.add(libraryId);
+                            String mvnUri = getMvnUri(libraryId);
+                            if (mvnUri != null) {
+                                MavenArtifact curMa = MavenUrlHelper.parseMvnUrl(mvnUri);
+                                String key = getGaKey(curMa);
+                                IDynamicConfiguration storedConfig = latestGaIdMap.get(key);
+                                if (storedConfig == null) {
+                                    latestGaIdMap.put(key, childConfig);
+                                    curUsedModules.add(libraryId);
+                                } else {
+                                    String storedId = (String) storedConfig
+                                            .getAttribute(DynamicModuleGroupAdapter.ATTR_LIBRARY_ID);
+                                    String curVersion = curMa.getVersion();
+                                    String storedMvnUri = getMvnUri(storedId);
+                                    MavenArtifact storedMa = MavenUrlHelper.parseMvnUrl(storedMvnUri);
+                                    String storedVersion = storedMa.getVersion();
+                                    if (0 < versionComparator.compare(curVersion, storedVersion)) {
+                                        curUsedModules.remove(storedId);
+                                        curUsedModules.add(libraryId);
+                                        oldVersionModuleConfigs.add(storedConfig);
+                                        latestGaIdMap.put(key, childConfig);
+                                    } else {
+                                        libraryIter.remove();
+                                    }
+                                }
+                            } else {
+                                curUsedModules.add(libraryId);
+                            }
                         }
                     }
                 }
+                childConfigurations.removeAll(oldVersionModuleConfigs);
                 Collections.sort(childConfigurations, new DynamicAttributeComparator(DynamicModuleGroupAdapter.ATTR_LIBRARY_ID));
                 usedModulesSet.addAll(curUsedModules);
             }
@@ -224,6 +255,22 @@ public class DynamicPluginAdapter {
 
             }
         }
+    }
+
+    private String getMvnUri(String id) {
+        IDynamicConfiguration moduleById = getModuleById(id);
+        if (moduleById == null) {
+            return null;
+        }
+        return (String) moduleById.getAttribute(DynamicModuleAdapter.ATTR_MVN_URI);
+    }
+
+    private String getGaKey(MavenArtifact ma) throws Exception {
+        String group = ma.getGroupId();
+        String artifact = ma.getArtifactId();
+        String classifier = ma.getClassifier();
+        String type = ma.getType();
+        return group + "/" + artifact + "/" + classifier + "/" + type; //$NON-NLS-1$//$NON-NLS-2$//$NON-NLS-3$
     }
 
     public void buildIdMaps() throws Exception {
