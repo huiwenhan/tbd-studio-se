@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Priority;
 import org.talend.commons.exception.ExceptionHandler;
 import org.talend.core.model.general.ModuleNeeded;
 import org.talend.core.runtime.dynamic.DynamicFactory;
@@ -115,7 +116,8 @@ public class DynamicModuleAdapter extends AbstractDynamicAdapter {
             String useStudioRepository = moduleBean.getUseStudioRepository();
             if (StringUtils.isNotEmpty(useStudioRepository)) {
                 ExceptionHandler.process(
-                        new Exception("Currently useStudioRepository is only supported by STANDARD type, will be ignored")); //$NON-NLS-1$
+                        new Exception("Currently useStudioRepository is only supported by STANDARD type, will be ignored"), //$NON-NLS-1$
+                        Priority.WARN);
             }
             boolean useLatest = Boolean.valueOf(moduleBean.getUseLatest());
 
