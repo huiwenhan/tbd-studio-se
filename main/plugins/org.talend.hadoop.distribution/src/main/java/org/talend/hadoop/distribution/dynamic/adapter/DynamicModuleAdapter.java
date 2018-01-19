@@ -168,21 +168,14 @@ public class DynamicModuleAdapter extends AbstractDynamicAdapter {
             }
 
             String beanId = moduleBean.getId();
-            String jarName = moduleBean.getJarName();
-            String runtimeId = null;
-            ModuleNeeded moduleNeeded = existingModuleMap.get(jarName);
-            if (moduleNeeded != null) {
-                runtimeId = moduleNeeded.getId();
-            } else {
-                runtimeId = DynamicDistributionUtils.getPluginKey(distribution, hadoopVersion, id, beanId);
-                if (!registedModules.contains(runtimeId)) {
-                    IDynamicConfiguration libraryNeeded = createLibraryNeeded(moduleBean);
-                    libraryNeeded.setAttribute(ATTR_ID, runtimeId);
-                    librariesNeeded.add(libraryNeeded);
-                    List<String> registedRuntimeIds = new ArrayList<>();
-                    registedRuntimeIds.add(runtimeId);
-                    registedModules.add(runtimeId);
-                }
+            String runtimeId = DynamicDistributionUtils.getPluginKey(distribution, hadoopVersion, id, beanId);
+            if (!registedModules.contains(runtimeId)) {
+                IDynamicConfiguration libraryNeeded = createLibraryNeeded(moduleBean);
+                libraryNeeded.setAttribute(ATTR_ID, runtimeId);
+                librariesNeeded.add(libraryNeeded);
+                List<String> registedRuntimeIds = new ArrayList<>();
+                registedRuntimeIds.add(runtimeId);
+                registedModules.add(runtimeId);
             }
 
             runtimeIds.add(runtimeId);
