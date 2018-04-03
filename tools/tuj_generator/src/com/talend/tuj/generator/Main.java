@@ -4,8 +4,10 @@ import com.talend.tuj.generator.conf.ArgsHandler;
 import com.talend.tuj.generator.conf.TUJGeneratorConfiguration;
 import com.talend.tuj.generator.io.TUJExporter;
 import com.talend.tuj.generator.io.TUJImporter;
+import com.talend.tuj.generator.utils.Context;
 import com.talend.tuj.generator.utils.TUJ;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Main {
@@ -19,7 +21,7 @@ public class Main {
         Migrator migrator = new Migrator(conf);
         List<TUJ> migratedTUJs = migrator.migrate(tujs);
 
-        TUJExporter.exportTUJ(conf, migratedTUJs);
+        TUJExporter.exportTUJs(conf, migratedTUJs);
 
     }
 }

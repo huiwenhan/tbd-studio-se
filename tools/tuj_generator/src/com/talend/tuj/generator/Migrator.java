@@ -5,6 +5,7 @@ import com.talend.tuj.generator.elements.ElementFactory;
 import com.talend.tuj.generator.elements.IElement;
 import com.talend.tuj.generator.exception.UnknownDistributionException;
 import com.talend.tuj.generator.processors.*;
+import com.talend.tuj.generator.utils.Context;
 import com.talend.tuj.generator.utils.Job;
 import com.talend.tuj.generator.utils.SubstitutionCmdHandler;
 import com.talend.tuj.generator.utils.TUJ;
@@ -18,8 +19,17 @@ import java.util.stream.Collectors;
 public class Migrator {
     private List<IProcessor> processors = new ArrayList<>();
     private static ElementFactory elmtFactory = ElementFactory.getInstance();
+    private TUJGeneratorConfiguration conf;
 
     public Migrator(TUJGeneratorConfiguration conf) {
+        this.conf = conf;
+
+        processors.add(new ContextIDProcessor());
+
+        if (conf.containsKey("contextSubstitution")) {
+            processors.add(new ContextValueSubstitutionProcessor(SubstitutionCmdHandler.processArgument(conf.get("contextSubstitution"))));
+        }
+
         processors.add(new JobIDProcessor());
         if (conf.containsKey("fileSubstitution")) {
             processors.add(new FileNameSubstitutionProcessor(SubstitutionCmdHandler.processArgument(conf.get("fileSubstitution"))));
@@ -37,6 +47,8 @@ public class Migrator {
                 case DATAPROC:
                     processors.add(new GenericDistributionComponentConfigurationProcessor(conf.getDistributionName().getXmlDistributionName(), conf.get("distributionVersion")));
                     processors.add(new GenericDistributionConfigurationProcessor(conf.getDistributionName().getXmlDistributionName(), conf.get("distributionVersion")));
+                    if(Boolean.parseBoolean(conf.get("sparkStandaloneMigration"))) processors.add(new SparkStandaloneToYARNProcessor());
+                    //processors.add(new CheckContextProcessor());
                     break;
             }
         } catch (UnknownDistributionException e) {
@@ -45,8 +57,9 @@ public class Migrator {
     }
 
     public TUJ migrate(TUJ tuj) {
-        System.out.println("Processing TUJ : " + tuj.getName());
+        //System.out.println("Processing TUJ : " + tuj.getName());
         navigateJob(tuj.getStarterJob());
+        tuj.getContexts().forEach(this::navigateContext);
         return tuj;
     }
 
@@ -55,17 +68,22 @@ public class Migrator {
     }
 
     private void navigateJob(Job job) {
-        iterateNodes(job.getProperties().getChildNodes(), job);
-        iterateNodes(job.getItem().getChildNodes(), job);
+        iterateJobNodes(job.getProperties().getChildNodes(), job);
+        iterateJobNodes(job.getItem().getChildNodes(), job);
 
         job.getChildJobs().forEach(this::navigateJob);
     }
 
-    private void iterateNodes(NodeList nodes, Job job) {
+    private void navigateContext(Context context) {
+        iterateContextNodes(context.getProperties().getChildNodes(), context);
+        iterateContextNodes(context.getItem().getChildNodes(), context);
+    }
+
+    private void iterateJobNodes(NodeList nodes, Job job) {
         for (int nodeIndex = 0; nodeIndex < nodes.getLength(); nodeIndex++) {
             Node node = nodes.item(nodeIndex);
 
-            IElement component = elmtFactory.createElement(node, job);
+            IElement component = elmtFactory.createJobElement(node, job);
 
             processors.forEach(
                     processor -> {
@@ -73,7 +91,23 @@ public class Migrator {
                     }
             );
 
-            if (node.hasChildNodes()) iterateNodes(node.getChildNodes(), job);
+            if (node.hasChildNodes()) iterateJobNodes(node.getChildNodes(), job);
+        }
+    }
+
+    private void iterateContextNodes(NodeList nodes, Context context) {
+        for (int nodeIndex = 0; nodeIndex < nodes.getLength(); nodeIndex++) {
+            Node node = nodes.item(nodeIndex);
+
+            IElement component = elmtFactory.createContextElement(node, context);
+
+            processors.forEach(
+                    processor -> {
+                        if (processor.shouldBeProcessed(component)) processor.process(component);
+                    }
+            );
+
+            if (node.hasChildNodes()) iterateContextNodes(node.getChildNodes(), context);
         }
     }
 

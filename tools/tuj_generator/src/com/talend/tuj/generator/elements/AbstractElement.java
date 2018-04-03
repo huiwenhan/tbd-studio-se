@@ -14,11 +14,10 @@ import java.util.Optional;
 
 public abstract class AbstractElement implements IElement {
     protected Node xmlNode;
-    protected Job job;
 
-    public AbstractElement(Node node, Job job) {
+
+    public AbstractElement(Node node) {
         this.xmlNode = node;
-        this.job = job;
     }
 
     @Override
@@ -37,10 +36,7 @@ public abstract class AbstractElement implements IElement {
 
     @Override
     public void replaceAttribute(String attribute, String value) {
-        try {
-            xmlNode.getAttributes().getNamedItem(attribute).setNodeValue(value);
-        } catch (NullPointerException ignored) {
-        }
+        xmlNode.getAttributes().getNamedItem(attribute).setNodeValue(value);
     }
 
     @Override
@@ -77,23 +73,16 @@ public abstract class AbstractElement implements IElement {
     }
 
     @Override
-    public boolean isJobOfType(JobType type) {
-        return job.getType().equals(type);
-    }
-
-    @Override
-    public boolean isJobOfFramework(JobFramework type) {
-        return job.getFramework().equals(type);
-    }
-
-    @Override
     public Map<String, String> getAllParameters() {
         Map<String, String> parameters = new HashMap<>();
 
         NodeList childs = xmlNode.getChildNodes();
         for (int nodeIndex = 0; nodeIndex < childs.getLength(); nodeIndex++) {
             NamedNodeMap childAttributes = childs.item(nodeIndex).getAttributes();
-            parameters.put(childAttributes.getNamedItem("name").getNodeValue(), childAttributes.getNamedItem("value").getNodeValue());
+            if (childAttributes == null) continue;
+            try{
+                parameters.put(childAttributes.getNamedItem("name").getNodeValue(), childAttributes.getNamedItem("value").getNodeValue());
+            } catch (NullPointerException ignored){}
         }
 
         return parameters;
@@ -104,16 +93,12 @@ public abstract class AbstractElement implements IElement {
         NodeList childs = xmlNode.getChildNodes();
         for (int nodeIndex = 0; nodeIndex < childs.getLength(); nodeIndex++) {
             NamedNodeMap childAttributes = childs.item(nodeIndex).getAttributes();
+            if (childAttributes == null) continue;
             String attributeName = childAttributes.getNamedItem("name").getNodeValue();
             if (newParameters.containsKey(attributeName)) {
                 replaceParameter(attributeName, newParameters.get(attributeName));
             }
         }
-    }
-
-    @Override
-    public Job getParentJob() {
-        return job;
     }
 
     @Override

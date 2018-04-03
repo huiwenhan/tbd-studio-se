@@ -1,10 +1,12 @@
 package com.talend.tuj.generator.processors;
 
 import com.talend.tuj.generator.elements.IElement;
+import com.talend.tuj.generator.elements.JobElement;
+import com.talend.tuj.generator.utils.ComponentClass;
 import com.talend.tuj.generator.utils.JobFramework;
 import com.talend.tuj.generator.utils.NodeType;
 
-public class SparkConfigurationLocalSparkProcessor implements IProcessor {
+public class SparkConfigurationLocalSparkProcessor extends IProcessor {
     private String distribution_version;
 
     public SparkConfigurationLocalSparkProcessor(String local_spark_version) {
@@ -13,7 +15,11 @@ public class SparkConfigurationLocalSparkProcessor implements IProcessor {
 
     @Override
     public boolean shouldBeProcessed(IElement component) {
-        return (component.isJobOfFramework(JobFramework.SPARK) || component.isJobOfFramework(JobFramework.SPARK_STREAMING)) && component.isOfType(NodeType.JOBCONFIG);
+        if(component.isOfClass(ComponentClass.Job)){
+            JobElement jobComponent = (JobElement)component;
+            return (jobComponent.isJobOfFramework(JobFramework.SPARK) || jobComponent.isJobOfFramework(JobFramework.SPARK_STREAMING)) && jobComponent.isOfType(NodeType.JOBCONFIG);
+        }
+        return false;
     }
 
     @Override

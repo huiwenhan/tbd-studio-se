@@ -1,20 +1,24 @@
 package com.talend.tuj.generator.processors;
 
 import com.talend.tuj.generator.elements.IElement;
+import com.talend.tuj.generator.utils.ComponentClass;
 import com.talend.tuj.generator.utils.JobID;
 import com.talend.tuj.generator.utils.NodeType;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class JobIDProcessor implements IProcessor {
+public class JobIDProcessor extends IProcessor {
     private Map<String, String> oldNewIdRelation = new HashMap<>();
 
     @Override
     public boolean shouldBeProcessed(IElement component) {
-        String componentName = component.getAttribute("componentName").orElse("");
+        if(component.isOfClass(ComponentClass.Job)){
+            String componentName = component.getAttribute("componentName").orElse("");
 
-        return (component.isOfType(NodeType.COMPONENT) && componentName.equals("tRunJob")) || component.isOfType(NodeType.TPProperty);
+            return (component.isOfType(NodeType.COMPONENT) && componentName.equals("tRunJob")) || (component.isOfClass(ComponentClass.Job) && component.isOfType(NodeType.TPProperty));
+        }
+        return false;
     }
 
     @Override

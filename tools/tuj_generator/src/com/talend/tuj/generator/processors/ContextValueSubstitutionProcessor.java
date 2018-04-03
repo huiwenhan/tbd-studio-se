@@ -2,32 +2,35 @@ package com.talend.tuj.generator.processors;
 
 import com.talend.tuj.generator.elements.IElement;
 import com.talend.tuj.generator.utils.NodeType;
+import javafx.util.Pair;
 
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class ContextSubstitutionProcessor implements IProcessor {
+public class ContextValueSubstitutionProcessor extends IProcessor {
 
-    private Map<String, String> substitutions;
+    private List<Pair<String, String>> substitutions;
 
-    public ContextSubstitutionProcessor(Map<String, String> substitutions) {
+    public ContextValueSubstitutionProcessor(List<Pair<String, String>> substitutions) {
         this.substitutions = substitutions;
     }
 
     @Override
     public boolean shouldBeProcessed(IElement component) {
-        return component.isOfType(NodeType.CONTEXT);
+        return component.isOfType(NodeType.JOBCONTEXT) || component.isOfType(NodeType.CONTEXTFILE);
     }
 
     @Override
     public void process(IElement component) {
         component.replaceParameters(
                 component.getAllParameters().entrySet().stream().filter(
-                        parameter -> substitutions.keySet().stream().anyMatch(parameter.getValue()::contains)
+                        parameter -> substitutions.stream().anyMatch(
+                                sub -> sub.getKey().contains(parameter.getValue()))
                 ).peek(
                         parameter -> {
                             String newParameter = parameter.getValue();
-                            for (Map.Entry<String, String> entry : substitutions.entrySet()) {
+                            for (Pair<String, String> entry : substitutions) {
                                 newParameter = newParameter.replaceAll(entry.getKey(), entry.getValue());
                             }
                             parameter.setValue(newParameter);

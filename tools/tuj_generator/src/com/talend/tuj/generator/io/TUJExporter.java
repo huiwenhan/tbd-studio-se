@@ -1,8 +1,7 @@
 package com.talend.tuj.generator.io;
 
 import com.talend.tuj.generator.conf.TUJGeneratorConfiguration;
-import com.talend.tuj.generator.utils.Job;
-import com.talend.tuj.generator.utils.TUJ;
+import com.talend.tuj.generator.utils.*;
 
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
@@ -17,17 +16,34 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 public class TUJExporter {
     private static TransformerFactory tFactory = TransformerFactory.newInstance();
+    private static int failed;
+    private static int exported;
 
-    public static void exportTUJ(TUJGeneratorConfiguration conf, List<TUJ> tujs) {
+    public static void exportTUJs(TUJGeneratorConfiguration conf, List<TUJ> tujs) {
+        failed = 0;
+        exported = 0;
         for (TUJ tuj : tujs) {
             writeTUJ(tuj, conf);
         }
+        System.out.println("Exported successfully " + exported + " TUJs but failed with " + failed + " others");
     }
 
     private static void writeTUJ(TUJ tuj, TUJGeneratorConfiguration conf) {
+        List<Job> jobs = tuj.getStarterJob().getChildJobs();
+        jobs.add(tuj.getStarterJob());
+
+        for (Job job : jobs) {
+            if(job.getType().equals(JobType.NONE)) {
+                //System.err.println("Failed to export TUJ : " + tuj.getName());
+                failed++;
+                return;
+            }
+        }
+
         Path tujRoot = FileSystems.getDefault().getPath(conf.get("output"), tuj.getName());
         tujRoot.toFile().mkdirs();
 
@@ -40,12 +56,12 @@ public class TUJExporter {
             e.printStackTrace();
         }
 
-        Path projectRoot = tujRoot.resolve(tuj.getProjectName());
-        projectRoot.toFile().mkdirs();
+        Path projectRoot = tujRoot;
 
-
-        List<Job> jobs = tuj.getStarterJob().getChildJobs();
-        jobs.add(tuj.getStarterJob());
+        if(tuj.getProjectName().isPresent()){
+            projectRoot = tujRoot.resolve(tuj.getProjectName().get());
+            projectRoot.toFile().mkdirs();
+        }
 
         try {
             Transformer transformer = tFactory.newTransformer();
@@ -80,15 +96,25 @@ public class TUJExporter {
                 File screenshotFile = jobFolder.resolve(job.getName() + "_" + job.getVersion() + ".screenshot").toFile();
                 screenshotFile.createNewFile();
                 transformer.transform(new DOMSource(job.getScreenshot()), new StreamResult(new FileWriter(screenshotFile)));
-
             }
 
+            for (Context context : tuj.getContexts()) {
+                String contextFolderName = "context";
+
+                Path contextFolder = projectRoot.resolve(contextFolderName).resolve(context.getFsPath().orElse(Paths.get("")));
+                contextFolder.toFile().mkdirs();
+
+                File itemFile = contextFolder.resolve(context.getName() + "_" + context.getVersion() + ".item").toFile();
+                itemFile.createNewFile();
+                transformer.transform(new DOMSource(context.getItem()), new StreamResult(new FileWriter(itemFile)));
+
+                File propertiesFile = contextFolder.resolve(context.getName() + "_" + context.getVersion() + ".properties").toFile();
+                propertiesFile.createNewFile();
+                transformer.transform(new DOMSource(context.getProperties()), new StreamResult(new FileWriter(propertiesFile)));
+            }
+            exported++;
         } catch (IOException | TransformerException e) {
             e.printStackTrace();
         }
-
-
     }
-
-
 }

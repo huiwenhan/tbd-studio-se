@@ -1,18 +1,20 @@
 package com.talend.tuj.generator.utils;
 
-import java.util.HashMap;
-import java.util.Map;
+import javafx.util.Pair;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SubstitutionCmdHandler {
     /*
-    arg : xxx=>yyy;aa=>bb
+    arg : xxx=>yyy,aa=>bb
      */
-    public static Map<String, String> processArgument(String arg) {
-        Map<String, String> substitutions = new HashMap<>();
+    public static List<Pair<String, String>> processArgument(String arg) {
+        List<Pair<String, String>> substitutions = new ArrayList<>();
 
-        for (String substitution : arg.split(";")) {
+        for (String substitution : arg.split(",")) {
             String[] parts = substitution.split("=>");
-            substitutions.put(parts[0], parts[1]);
+            substitutions.add(new Pair<>(parts[0], parts[1]));
         }
 
         return substitutions;

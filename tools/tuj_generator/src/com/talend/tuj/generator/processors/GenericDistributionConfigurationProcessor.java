@@ -1,11 +1,13 @@
 package com.talend.tuj.generator.processors;
 
 import com.talend.tuj.generator.elements.IElement;
+import com.talend.tuj.generator.elements.JobElement;
+import com.talend.tuj.generator.utils.ComponentClass;
 import com.talend.tuj.generator.utils.JobFramework;
 import com.talend.tuj.generator.utils.JobType;
 import com.talend.tuj.generator.utils.NodeType;
 
-public class GenericDistributionConfigurationProcessor implements IProcessor {
+public class GenericDistributionConfigurationProcessor extends IProcessor {
     private String distribution_name;
     private String distribution_version;
 
@@ -16,15 +18,20 @@ public class GenericDistributionConfigurationProcessor implements IProcessor {
 
     @Override
     public boolean shouldBeProcessed(IElement component) {
-        return !component.isJobOfType(JobType.STANDARD) && component.isOfType(NodeType.JOBCONFIG);
+        if(component.isOfClass(ComponentClass.Job)){
+            JobElement jobComponent = (JobElement)component;
+            return !jobComponent.isJobOfType(JobType.STANDARD) && jobComponent.isOfType(NodeType.JOBCONFIG);
+        }
+        return false;
     }
 
     @Override
     public void process(IElement component) {
-        component.replaceParameter("DISTRIBUTION", distribution_name);
+        JobElement jobComponent = (JobElement)component;
+        jobComponent.replaceParameter("DISTRIBUTION", distribution_name);
 
-        if (component.isJobOfFramework(JobFramework.MAPREDUCE))
-            component.replaceParameter("MR_VERSION", distribution_version);
-        else component.replaceParameter("SPARK_VERSION", distribution_version);
+        if (jobComponent.isJobOfFramework(JobFramework.MAPREDUCE))
+            jobComponent.replaceParameter("MR_VERSION", distribution_version);
+        else jobComponent.replaceParameter("SPARK_VERSION", distribution_version);
     }
 }

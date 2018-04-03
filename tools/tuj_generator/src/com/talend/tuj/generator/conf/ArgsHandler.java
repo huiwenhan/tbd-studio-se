@@ -15,18 +15,22 @@ public class ArgsHandler {
         output.setRequired(true);
         options.addOption(output);
 
-        // TODO Can be ignored as Colibri overwrites contexts
-        Option contextSubstitution = new Option("s", "context-substitution", true, "substitutions for context values. For example : aaa=>bbb;ccc=>ddd will replace aaa by bbb and ccc by ddd in contexts");
+        // TODO Not supported yet
+        Option contextSubstitution = new Option("C", "context-substitution", true, "substitutions for context values. For example : aaa=>bbb;ccc=>ddd will replace aaa by bbb and ccc by ddd in contexts");
         contextSubstitution.setRequired(false);
         options.addOption(contextSubstitution);
 
-        Option fileSubstitution = new Option("S", "file-substitution", true, "substitutions for file and folder names. For example : aaa=>bbb;ccc=>ddd will replace aaa by bbb and ccc by ddd in names");
+        Option fileSubstitution = new Option("P", "path-substitution", true, "substitutions for file and folder names. For example : aaa=>bbb;ccc=>ddd will replace aaa by bbb and ccc by ddd in names");
         fileSubstitution.setRequired(false);
         options.addOption(fileSubstitution);
 
         Option distributionName = new Option("N", "distribution-name", true, "name of the distribution to generate the TUJs. See mapping.md for supported distribution names");
         distributionName.setRequired(true);
         options.addOption(distributionName);
+
+        Option sparkVersion = new Option("S", "spark-version", true, "spark version of the distribution to generate the TUJs. See mapping.md for spark version format");
+        sparkVersion.setRequired(false);
+        options.addOption(sparkVersion);
 
         Option distributionVersion = new Option("V", "distribution-version", true, "version of the distribution to generate the TUJs. See mapping.md for supported distribution version format (not checked)");
         distributionVersion.setRequired(true);
@@ -36,6 +40,10 @@ public class ArgsHandler {
         Option tuj = new Option("t", "tuj-filter", true, "will filter the TUJs by name matching the given string (can be regex)");
         tuj.setRequired(false);
         options.addOption(tuj);
+
+        Option standalone = new Option("s", "spark-yarn", false, "will migrate Spark standalone to YARN Client");
+        standalone.setRequired(false);
+        options.addOption(standalone);
 
         CommandLineParser parser = new DefaultParser();
         HelpFormatter formatter = new HelpFormatter();
@@ -52,13 +60,14 @@ public class ArgsHandler {
         }
 
         TUJGeneratorConfiguration conf = new TUJGeneratorConfiguration();
+        conf.put("sparkStandaloneMigration", Boolean.toString(cmd.hasOption('s')));
         conf.put("input", cmd.getOptionValue('i'));
         conf.put("output", cmd.getOptionValue('o'));
         conf.put("distributionName", cmd.getOptionValue('N'));
-        conf.put("distributionValue", cmd.getOptionValue('V'));
+        conf.put("distributionVersion", cmd.getOptionValue('V'));
         if (cmd.hasOption('t')) conf.put("tuj", cmd.getOptionValue('t'));
-        if (cmd.hasOption('S')) conf.put("fileSubstitution", cmd.getOptionValue('S'));
-        if (cmd.hasOption('s')) conf.put("contextSubstitution", cmd.getOptionValue('s'));
+        if (cmd.hasOption('P')) conf.put("fileSubstitution", cmd.getOptionValue('P'));
+        if (cmd.hasOption('C')) conf.put("contextSubstitution", cmd.getOptionValue('C'));
         return conf;
     }
 }

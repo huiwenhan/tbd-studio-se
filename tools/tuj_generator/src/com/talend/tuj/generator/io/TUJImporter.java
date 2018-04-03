@@ -2,6 +2,7 @@ package com.talend.tuj.generator.io;
 
 import com.talend.tuj.generator.conf.TUJGeneratorConfiguration;
 import com.talend.tuj.generator.exception.NotWellMadeTUJException;
+import com.talend.tuj.generator.utils.Context;
 import com.talend.tuj.generator.utils.Job;
 import com.talend.tuj.generator.utils.TUJ;
 import org.xml.sax.SAXException;
@@ -9,11 +10,9 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.file.DirectoryStream;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.nio.file.*;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -28,7 +27,7 @@ public class TUJImporter {
         if (conf.containsKey("tuj")) {
             pattern = Optional.of(Pattern.compile(conf.get("tuj")));
         }
-        return findTUJsInFolder(root);
+        return findTUJs(root);
     }
 
     private Job generateJobHierarchy(List<Job> jobList) throws NotWellMadeTUJException {
@@ -61,10 +60,10 @@ public class TUJImporter {
             return jobMap.get(jobIds.iterator().next());
         }
 
-        throw new NotWellMadeTUJException();
+        throw new NotWellMadeTUJException("TUJ contains " + jobIds.size() + " entry points");
     }
 
-    private List<TUJ> findTUJsInFolder(Path root) {
+    private List<TUJ> findTUJs(Path root) {
         List<TUJ> tujs = new ArrayList<>();
 
         try (DirectoryStream<Path> rootFolder = Files.newDirectoryStream(root)) {
@@ -74,37 +73,57 @@ public class TUJImporter {
                         (!pattern.isPresent() ||
                                 (pattern.isPresent() && pattern.get().matcher(tujRoot.getFileName().toString()).find())
                         )) {
-                    String projectName = findProjectName(tujRoot);
+                    Optional<String> projectName = findProjectName(tujRoot);
+                    Path projectRoot = tujRoot;
 
                     List<Job> jobs = new ArrayList<>();
+                    List<Context> contexts = new ArrayList<>();
 
-                    if (Files.isDirectory(tujRoot.resolve(projectName).resolve("process"))) {
-                        jobs.addAll(findJobsInFolder(tujRoot.resolve(projectName).resolve("process")));
+                    if(projectName.isPresent()){
+                        projectRoot = tujRoot.resolve(projectName.get());
+                    }
+
+                    try{
+                    if (Files.isDirectory(projectRoot.resolve("process"))) {
+                        jobs.addAll(findJobsInFolder(projectRoot.resolve("process")));
                     } else {
                         //System.err.println("No DI folder");
                     }
 
-                    if (Files.isDirectory(tujRoot.resolve(projectName).resolve("process_mr"))) {
-                        jobs.addAll(findJobsInFolder(tujRoot.resolve(projectName).resolve("process_mr")));
+                    if (Files.isDirectory(projectRoot.resolve("process_mr"))) {
+                        jobs.addAll(findJobsInFolder(projectRoot.resolve("process_mr")));
                     } else {
                         //System.err.println("No Batch folder");
                     }
 
-                    if (Files.isDirectory(tujRoot.resolve(projectName).resolve("process_storm"))) {
-                        jobs.addAll(findJobsInFolder(tujRoot.resolve(projectName).resolve("process_storm")));
+                    if (Files.isDirectory(projectRoot.resolve("process_storm"))) {
+                        jobs.addAll(findJobsInFolder(projectRoot.resolve("process_storm")));
                     } else {
                         //System.err.println("No Streaming folder");
                     }
+                    } catch (NotWellMadeTUJException e){
+                        System.err.println(tujRoot.getFileName().toString() + " has issue : " + e.getMessage());
+                        continue;
+                    }
+
+
+                    if (Files.isDirectory(projectRoot.resolve("context"))) {
+                        contexts.addAll(findContextsInFolder(projectRoot.resolve("context")));
+                    } else {
+                        //System.err.println("No Streaming folder");
+                    }
+
                     try {
                         tujs.add(new TUJ(
                                 generateJobHierarchy(jobs),
-                                dBuilder.parse(tujRoot.resolve(projectName).resolve("talend.project").toString()),
+                                dBuilder.parse(projectRoot.resolve("talend.project").toString()),
                                 findResourcesInFolder(tujRoot),
+                                contexts,
                                 tujRoot.getFileName().toString(),
                                 projectName
                         ));
                     } catch (NotWellMadeTUJException e) {
-                        System.err.println("Ignoring TUJ : " + tujRoot.getFileName().toString());
+                        System.err.println("Ignoring TUJ : " + tujRoot.getFileName().toString() + " because : " + e.getMessage());
                     }
                 }
             }
@@ -116,14 +135,55 @@ public class TUJImporter {
             e.printStackTrace();
         }
 
+        System.out.println("Imported " + tujs.size() + " TUJs");
+
         return tujs;
     }
 
-    private List<Job> findJobsInFolder(Path root) {
+    private List<Context> findContextsInFolder(Path root) {
+        return findContextsInFolder(root, Optional.empty());
+    }
+
+    private List<Context> findContextsInFolder(Path root, Optional<Path> folderStructure) {
+        ArrayList<Context> contexts = new ArrayList<>();
+        Set<String> contextNames = new HashSet<>();
+
+        try (DirectoryStream<Path> rootFolder = Files.newDirectoryStream(root)) {
+            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+            for (Path folder : rootFolder) {
+                if (Files.isDirectory(folder)) {
+                    if (folderStructure.isPresent())
+                        contexts.addAll(findContextsInFolder(folder, Optional.of(folderStructure.get().resolve(folder.getFileName().toString()))));
+                    else contexts.addAll(findContextsInFolder(folder, Optional.of(folder.getFileName())));
+                } else {
+                    String jobName = folder.getFileName().toString();
+                    contextNames.add(jobName.substring(0, jobName.lastIndexOf('.')));
+                }
+            }
+
+            for (String jobName : contextNames) {
+                contexts.add(new Context(
+                        dBuilder.parse(root.resolve(jobName + ".properties").toString()),
+                        dBuilder.parse(root.resolve(jobName + ".item").toString()),
+                        folderStructure
+                ));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ParserConfigurationException e) {
+            e.printStackTrace();
+        } catch (SAXException e) {
+            e.printStackTrace();
+        }
+
+        return contexts;
+    }
+
+    private List<Job> findJobsInFolder(Path root) throws NotWellMadeTUJException {
         return findJobsInFolder(root, Optional.empty());
     }
 
-    private List<Job> findJobsInFolder(Path root, Optional<Path> folderStructure) {
+    private List<Job> findJobsInFolder(Path root, Optional<Path> folderStructure) throws NotWellMadeTUJException {
         ArrayList<Job> jobs = new ArrayList<>();
         Set<String> jobNames = new HashSet<>();
 
@@ -145,15 +205,12 @@ public class TUJImporter {
                         dBuilder.parse(root.resolve(jobName + ".properties").toString()),
                         dBuilder.parse(root.resolve(jobName + ".item").toString()),
                         dBuilder.parse(root.resolve(jobName + ".screenshot").toString()),
-                        folderStructure
+                        folderStructure,
+                        root.toAbsolutePath()
                 ));
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ParserConfigurationException e) {
-            e.printStackTrace();
-        } catch (SAXException e) {
-            e.printStackTrace();
+        } catch (Exception e){
+            throw new NotWellMadeTUJException("Malformed TUJ because of : " + e.getMessage());
         }
 
         return jobs;
@@ -172,17 +229,35 @@ public class TUJImporter {
         return resources;
     }
 
-    private String findProjectName(Path root) {
-        try (DirectoryStream<Path> rootFolder = Files.newDirectoryStream(root)) {
-            for (Path projectFolder : rootFolder) {
-                if (Files.isDirectory(projectFolder)) {
-                    return projectFolder.getFileName().toString();
+    private Optional<String> findProjectName(Path root) {
+        return findProjectName(root, root);
+    }
+
+    private Optional<String> findProjectName(Path root, Path processRoot){
+        try(DirectoryStream<Path> candidateProjectFolder = Files.newDirectoryStream(processRoot)){
+            for (Path file : candidateProjectFolder) {
+                if(file.getFileName().toString().equals("talend.project")){
+                    if(processRoot.getFileName().equals(root.getFileName())) return Optional.empty();
+                    return Optional.of(processRoot.getFileName().toString());
                 }
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.exit(1);
-        return "";
+
+        try(DirectoryStream<Path> candidateProjectFolder = Files.newDirectoryStream(processRoot)){
+            for (Path file : candidateProjectFolder) {
+                if(Files.isDirectory(file)){
+                    Optional<String> result = findProjectName(root, file);
+                    if(result.isPresent()){
+                        return result;
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return Optional.empty();
     }
 }

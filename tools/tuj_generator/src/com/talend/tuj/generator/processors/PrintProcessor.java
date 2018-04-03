@@ -3,7 +3,7 @@ package com.talend.tuj.generator.processors;
 import com.talend.tuj.generator.elements.IElement;
 import com.talend.tuj.generator.utils.NodeType;
 
-public class PrintProcessor implements IProcessor {
+public class PrintProcessor extends IProcessor {
     @Override
     public boolean shouldBeProcessed(IElement component) {
         return component.isOfType(NodeType.COMPONENT);
