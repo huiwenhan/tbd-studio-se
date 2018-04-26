@@ -234,7 +234,7 @@
 				UrlPath="platform:/plugin/org.talend.libraries.apache.common/lib/commons-configuration-1.6.jar"
 				NAME="commons-configuration-1.6.jar" REQUIRED_IF="(USE_EXISTING_CONNECTION == 'false')" />
 			<IMPORT MODULE="commons-lang-2.6.jar"
-				MVN="mvn:org.talend.libraries/ccommons-lang-2.6/6.0.0"
+				MVN="mvn:org.talend.libraries/commons-lang-2.6/6.0.0"
 				UrlPath="platform:/plugin/org.talend.libraries.apache.common/lib/commons-lang-2.6.jar"
 				NAME="commons-lang-2.6.jar" REQUIRED_IF="(USE_EXISTING_CONNECTION == 'false')" />
 			<IMPORT MODULE="zookeeper-3.4.5-mapr-1503.jar"

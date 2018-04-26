@@ -1,11 +1,11 @@
 <COMPONENT>
-	<HEADER PLATEFORM="ALL" SERIAL="" VERSION="0.101" STATUS="ALPHA"
+<HEADER PLATEFORM="ALL" SERIAL="" VERSION="0.101" STATUS="ALPHA"
 		COMPATIBILITY="ALL" AUTHOR="Talend" SCHEMA_AUTO_PROPAGATE="true"
-		DATA_AUTO_PROPAGATE="false" RELEASE_DATE="20170905A" STARTABLE="false"
+		DATA_AUTO_PROPAGATE="false" RELEASE_DATE="20180426A" STARTABLE="false"
 		LOG4J_ENABLED="true"
-		HAS_CONDITIONAL_OUTPUTS="true">
+		HAS_CONDITIONAL_OUTPUTS="false">
 		<SIGNATURE />
-	</HEADER>
+	</HEADER>	
 	<FAMILIES>
 		<FAMILY>Databases NoSQL/MapRDB</FAMILY>
 	</FAMILIES>
@@ -13,140 +13,49 @@
 		<URL />
 	</DOCUMENTATION>
 	<CONNECTORS>
-		<CONNECTOR CTYPE="FLOW" MAX_INPUT="1" MAX_OUTPUT="1" />
-		<CONNECTOR NAME="REJECT" CTYPE="FLOW" MAX_INPUT="0"
-			MAX_OUTPUT="1" LINE_STYLE="2" COLOR="FF0000" BASE_SCHEMA="FLOW"
-			NOT_SHOW_IF="((DIE_ON_ERROR == 'true') OR (SET_BULK_WRITE == 'true'))" />
-		<CONNECTOR CTYPE="ITERATE" MAX_OUTPUT="0" MAX_INPUT="0" />
-		<CONNECTOR CTYPE="SUBJOB_OK" MAX_INPUT="1" />
-		<CONNECTOR CTYPE="SUBJOB_ERROR" MAX_INPUT="1" />
-		<CONNECTOR CTYPE="COMPONENT_OK" />
-		<CONNECTOR CTYPE="COMPONENT_ERROR" />
-		<CONNECTOR CTYPE="RUN_IF" />
+        <CONNECTOR CTYPE="FLOW" MAX_INPUT="0" MAX_OUTPUT="1"/>
+        <CONNECTOR CTYPE="ITERATE" MAX_OUTPUT="1" MAX_INPUT="1"/>
+        <CONNECTOR CTYPE="SUBJOB_OK" MAX_INPUT="1" />
+        <CONNECTOR CTYPE="SUBJOB_ERROR" MAX_INPUT="1" />
+        <CONNECTOR CTYPE="COMPONENT_OK"/>
+        <CONNECTOR CTYPE="COMPONENT_ERROR"/>
+        <CONNECTOR CTYPE="RUN_IF"/>
 	</CONNECTORS>
 	<PARAMETERS>
-		<PARAMETER NAME="PROPERTY" FIELD="PROPERTY_TYPE" NUM_ROW="10"
+		<PARAMETER NAME="USE_EXISTING_CONNECTION" FIELD="CHECK"	NUM_ROW="10" >
+			<DEFAULT>false</DEFAULT>
+		</PARAMETER>
+		<PARAMETER NAME="PROPERTY" FIELD="PROPERTY_TYPE" NUM_ROW="11"
 			REPOSITORY_VALUE="NOSQL:MapRDB" NOT_SHOW_IF="USE_EXISTING_CONNECTION == 'true'" />
-	    
-		<PARAMETER NAME="USE_EXISTING_CONNECTION" FIELD="CHECK"
-			NUM_ROW="20" GROUP="CONNECTION" SHOW_IF="false">
-			<DEFAULT>false</DEFAULT>
-		</PARAMETER>
-		<!-- 
 		<PARAMETER NAME="CONNECTION" FIELD="COMPONENT_LIST"
-			REQUIRED="true" FILTER="tMapROjaiConnection" NUM_ROW="20"
-			SHOW_IF="USE_EXISTING_CONNECTION == 'true'" GROUP="CONNECTION" />
-		-->
-			
-		<PARAMETER FIELD="TEXT" NAME="TABLE" REQUIRED="true"
-			NUM_ROW="30">
+			REQUIRED="true" FILTER="tMapRDBConnection" NUM_ROW="12"
+			SHOW_IF="USE_EXISTING_CONNECTION == 'true'" />
+
+		<PARAMETER NAME="SCHEMA" FIELD="SCHEMA_TYPE" NUM_ROW="20">
 			<DEFAULT>""</DEFAULT>
 		</PARAMETER>
+		<PARAMETER NAME="RESTRICT_PARTIAL_SORTS" FIELD="CHECK" NUM_ROW="22" >
+			<DEFAULT>false</DEFAULT>
+		</PARAMETER>
 		
-		        <PARAMETER
-            NAME="DB_VERSION"
-            FIELD="CLOSED_LIST"
-            REPOSITORY_VALUE="DB_VERSION"
-            NUM_ROW="40"
-            SHOW_IF="(USE_EXISTING_CONNECTION == 'false')"
-            GROUP="CONNECTION">
-            <ITEMS DEFAULT="MAPROJAI_5_2">
-                <ITEM NAME="MAPROJAI_5_1" VALUE="MAPROJAI_5_1"/>
-                <ITEM NAME="MAPROJAI_5_2" VALUE="MAPROJAI_5_2"/>
-            </ITEMS>
+		<PARAMETER NAME="TABLE" FIELD="TEXT" NUM_ROW="50">
+			<DEFAULT>""</DEFAULT>
+		</PARAMETER>
+
+        <PARAMETER
+            FIELD="MEMO"
+            NAME="QUERY"
+            REQUIRED="true"
+            NUM_ROW="41"
+            NB_LINES="5">
+            <DEFAULT>"{}"</DEFAULT>
         </PARAMETER>
-        
-        		<!-- kerberos -->
-		<PARAMETER NAME="USE_KRB" FIELD="CHECK" NUM_ROW="50"
-			REPOSITORY_VALUE="USE_KRB" GROUP="AUTHENTICATION">
-			<DEFAULT>false</DEFAULT>
-		</PARAMETER>
-
-		<PARAMETER NAME="PRINCIPAL" REPOSITORY_VALUE="KEYTAB_PRINCIPAL"
-			FIELD="TEXT" REQUIRED="true" NUM_ROW="55" GROUP="AUTHENTICATION"
-			SHOW_IF="((USE_KRB=='true')">
-			<DEFAULT>"hdfs"</DEFAULT>
-		</PARAMETER>
-
-		<PARAMETER NAME="KERBEROS_PASSWORD" FIELD="PASSWORD" GROUP="AUTHENTICATION"
-			REPOSITORY_VALUE="MAPRTICKET_PASSWORD" REQUIRED="true" NUM_ROW="60"
-			SHOW_IF="((USE_KRB=='true') AND (USE_KEYTAB=='false'))">
-			<DEFAULT>""</DEFAULT>
-		</PARAMETER>
-
-
-		<PARAMETER NAME="USE_KEYTAB" REPOSITORY_VALUE="USE_KEYTAB"
-			FIELD="CHECK" NUM_ROW="65" SHOW_IF="(USE_KRB=='true')" GROUP="AUTHENTICATION">
-			<DEFAULT>false</DEFAULT>
-		</PARAMETER>
-
-		<PARAMETER NAME="KEYTAB_PATH" REPOSITORY_VALUE="KEYTAB_PATH"
-			FIELD="FILE" REQUIRED="true" NUM_ROW="70"
-			SHOW_IF="(USE_KRB=='true') AND (USE_KEYTAB=='true'))" GROUP="AUTHENTICATION">
-			<DEFAULT>"/tmp/hdfs.headless.keytab"</DEFAULT>
-		</PARAMETER>
-
-		<PARAMETER NAME="TABLE_ACTION" FIELD="CLOSED_LIST" NUM_ROW="80">
-			<ITEMS DEFAULT="NONE">
-				<ITEM NAME="NONE" VALUE="NONE" />
-				<ITEM NAME="DROP_CREATE" VALUE="DROP_CREATE" />
-				<ITEM NAME="CREATE" VALUE="CREATE" />
-				<ITEM NAME="CREATE_IF_NOT_EXISTS" VALUE="CREATE_IF_NOT_EXISTS" />
-				<ITEM NAME="DROP_IF_EXISTS_AND_CREATE" VALUE="DROP_IF_EXISTS_AND_CREATE" />
-				<ITEM NAME="TRUNCATE" VALUE="TRUNCATE" />
-			</ITEMS>
-		</PARAMETER>
-
-		<PARAMETER NAME="DATA_ACTION" FIELD="CLOSED_LIST" NUM_ROW="85">
-			<ITEMS DEFAULT="INSERT">
-				<ITEM NAME="INSERT" VALUE="INSERT" />
-				<ITEM NAME="REPLACE" VALUE="REPLACE" />
-				<ITEM NAME="INSERT_OR_REPLACE" VALUE="INSERT_OR_REPLACE" />
-				<ITEM NAME="DELETE" VALUE="DELETE" />
-			</ITEMS>
-		</PARAMETER>
-
-		<PARAMETER NAME="UPDATE_ALL" FIELD="CHECK" NUM_ROW="90"
-			SHOW_IF="((DATA_ACTION=='SET') OR (DATA_ACTION=='UPSERT_WITH_SET')) AND (IS_VIRTUAL_COMPONENT == 'false')">
-			<DEFAULT>false</DEFAULT>
-		</PARAMETER>
-
-		<PARAMETER NAME="SCHEMA_FLOW" FIELD="SCHEMA_TYPE" NUM_ROW="95">
-			<TABLE READONLY="false">
-				<COLUMN NAME="_id" TYPE="id_String" READONLY="false" />
-			</TABLE>
-		</PARAMETER>
-		
-		<PARAMETER NAME="SCHEMA_REJECT" FIELD="SCHEMA_TYPE"
-			REQUIRED="true" NUM_ROW="95" CONTEXT="REJECT" SHOW="true">
-			<TABLE READONLY="true">
-				<COLUMN NAME="errorCode" TYPE="id_String" LENGTH="255"
-					READONLY="false" CUSTOM="true" />
-				<COLUMN NAME="errorMessage" TYPE="id_String" LENGTH="255"
-					READONLY="false" CUSTOM="true" />
-			</TABLE>
-		</PARAMETER>
-
-		<PARAMETER FIELD="CHECK" NAME="SET_BULK_WRITE" NUM_ROW="100"
-			GROUP="BULK_WRITE_GROUP">
-			<DEFAULT>true</DEFAULT>
-		</PARAMETER>
-
-		<PARAMETER FIELD="TEXT" NAME="BULK_WRITE_SIZE"
-			REPOSITORY_VALUE="BULK_WRITE_SIZE" NUM_ROW="110" SHOW_IF="SET_BULK_WRITE=='true'"
-			GROUP="BULK_WRITE_GROUP">
-			<DEFAULT>"10000"</DEFAULT>
-		</PARAMETER>
 
 		<PARAMETER NAME="MAPPING" FIELD="TABLE" REQUIRED="true"
-			NUM_ROW="120" NB_LINES="5">
+			NUM_ROW="60" NB_LINES="5">
 			<ITEMS BASED_ON_SCHEMA="true">
-				<ITEM NAME="PARENT_FIELD_PATH" FIELD="TEXT" />
+				<ITEM NAME="FAMILY_COLUMN" />
 			</ITEMS>
-		</PARAMETER>
-
-		<PARAMETER NAME="DIE_ON_ERROR" FIELD="CHECK" NUM_ROW="210">
-			<DEFAULT>false</DEFAULT>
 		</PARAMETER>
 	</PARAMETERS>
 
@@ -155,57 +64,38 @@
 
 	<CODEGENERATION>
 		<IMPORTS>
-            <!-- required for 5.1 -->
-            <IMPORT MODULE="mapr-java-utils-1.1-mapr.jar"
-				MVN="mvn:org.talend.libraries/mapr-java-utils-5.1.0-mapr/6.0.0" NAME="mapr-java-utils-5.1.0-mapr.jar"
-				REQUIRED_IF="(USE_EXISTING_CONNECTION == 'false') AND (DB_VERSION == 'MAPROJAI_5_1')" />
-			<IMPORT MODULE="maprdb-5.1.0-mapr.jar"
-				MVN="mvn:org.talend.libraries/maprdb-5.1.0-mapr/6.0.0" NAME="maprdb-5.1.0-mapr"
-				REQUIRED_IF="(USE_EXISTING_CONNECTION == 'false') AND (DB_VERSION == 'MAPROJAI_5_1')" />
-			<IMPORT MODULE="maprfs-5.1.0-mapr.jar"
-				MVN="mvn:org.talend.libraries/maprfs-5.1.0-mapr/6.0.0" NAME="maprfs-5.1.0-mapr.jar"
-				REQUIRED_IF="(USE_EXISTING_CONNECTION == 'false') AND (DB_VERSION == 'MAPROJAI_5_1')" />			
-			<IMPORT MODULE="ojai-1.0.jar" MVN="mvn:org.talend.libraries/ojai-1.0/6.0.0"
-				NAME="ojai-1.0.jar" REQUIRED_IF="(USE_EXISTING_CONNECTION == 'false') AND (DB_VERSION == 'MAPROJAI_5_1')" />
-			<IMPORT MODULE="hadoop-annotations-2.7.0-mapr-1602.jar"
-				MVN="mvn:org.talend.libraries/hadoop-annotations-2.7.0-mapr-1602/6.0.0"
-				NAME="hadoop-annotations-2.7.0-mapr-1602.jar" 
-				REQUIRED_IF="(USE_EXISTING_CONNECTION == 'false') AND (DB_VERSION == 'MAPROJAI_5_1')" />
-			<IMPORT MODULE="hadoop-auth-2.7.0-mapr-1602.jar"
-				MVN="mvn:org.talend.libraries/hadoop-auth-2.7.0-mapr-1602/6.0.0"
-				NAME="hadoop-auth-2.7.0-mapr-1602.jar" 
-				REQUIRED_IF="(USE_EXISTING_CONNECTION == 'false') AND (DB_VERSION == 'MAPROJAI_5_1')" />
-			<IMPORT MODULE="hadoop-common-2.7.0-mapr-1602.jar"
-				MVN="mvn:org.talend.libraries/hadoop-common-2.7.0-mapr-1602/6.0.0"
-				NAME="hadoop-common-2.7.0-mapr-1602.jar" 
-				REQUIRED_IF="(USE_EXISTING_CONNECTION == 'false') AND (DB_VERSION == 'MAPROJAI_5_1')" />
+			<!-- required for 6.0 -->
+			<IMPORT MODULE="ojai-2.0-mapr-1710.jar" MVN="mvn:org.talend.libraries/ojai-2.0-mapr-1710/6.0.0"
+			    UrlPath="platform:/plugin/org.talend.hadoop.distribution.mapr600.jars/lib/ojai-2.0-mapr-1710.jar"
+				NAME="ojai-2.0-mapr-1710.jar" REQUIRED_IF="true" />
+
+
+
+			<!-- required for 6.0 ? -->
+			<IMPORT MODULE="maprdb-6.0.0-mapr.jar"
+				MVN="mvn:org.talend.libraries/maprdb-6.0.0-mapr/6.0.0" NAME="maprdb-6.0.0-mapr.jar"
+				REQUIRED_IF="true" />
+
+			<IMPORT MODULE="maprfs-6.0.0-mapr.jar"
+				MVN="mvn:org.talend.libraries/maprfs-6.0.0-mapr/6.0.0" NAME="maprfs-6.0.0-mapr.jar"
+				REQUIRED_IF="true" />			
+			<!-- IMPORT MODULE="hadoop-annotations-2.7.0-mapr-1710.jar"
+				MVN="mvn:org.talend.libraries/hadoop-annotations-2.7.0-mapr-1710/6.0.0"
+				NAME="hadoop-annotations-2.7.0-mapr-1710.jar" 
+				REQUIRED_IF="true" /--> <!-- Does not exist -->
 				
-			<!-- required for 5.2 -->
-			<IMPORT MODULE="maprdb-5.2.0-mapr.jar"
-				MVN="mvn:org.talend.libraries/maprdb-5.2.0-mapr/6.0.0" NAME="maprdb-5.2.0-mapr"
-				REQUIRED_IF="(USE_EXISTING_CONNECTION == 'false') AND (DB_VERSION == 'MAPROJAI_5_2')" />
-			<IMPORT MODULE="maprfs-5.2.0-mapr.jar"
-				MVN="mvn:org.talend.libraries/maprfs-5.2.0-mapr/6.0.0" NAME="maprfs-5.2.0-mapr.jar"
-				REQUIRED_IF="(USE_EXISTING_CONNECTION == 'false') AND (DB_VERSION == 'MAPROJAI_5_2')" />			
-			<IMPORT MODULE="ojai-1.1.jar" MVN="mvn:org.talend.libraries/ojai-1.1/6.0.0"
-			    UrlPath="platform:/plugin/org.talend.hadoop.distribution.mapr520.jars/lib/ojai-1.1.jar"
-				NAME="ojai-1.1.jar" REQUIRED_IF="(USE_EXISTING_CONNECTION == 'false') AND (DB_VERSION == 'MAPROJAI_5_2')" />
-			<IMPORT MODULE="hadoop-annotations-2.7.0-mapr-1607.jar"
-				MVN="mvn:org.talend.libraries/hadoop-annotations-2.7.0-mapr-1607/6.0.0"
-				NAME="hadoop-annotations-2.7.0-mapr-1607.jar" 
-				REQUIRED_IF="(USE_EXISTING_CONNECTION == 'false') AND (DB_VERSION == 'MAPROJAI_5_2')" />
-			<IMPORT MODULE="hadoop-auth-2.7.0-mapr-1607.jar"
-				MVN="mvn:org.talend.libraries/hadoop-auth-2.7.0-mapr-1607/6.0.0"
-				UrlPath="platform:/plugin/org.talend.hadoop.distribution.mapr520.jars/lib/hadoop-auth-2.7.0-mapr-1607.jar"
-				NAME="hadoop-auth-2.7.0-mapr-1607.jar" 
-				REQUIRED_IF="(USE_EXISTING_CONNECTION == 'false') AND (DB_VERSION == 'MAPROJAI_5_2')" />
-			<IMPORT MODULE="hadoop-common-2.7.0-mapr-1607.jar"
-				MVN="mvn:org.talend.libraries/hadoop-common-2.7.0-mapr-1607/6.0.0"
-				UrlPath="platform:/plugin/org.talend.hadoop.distribution.mapr520.jars/lib/hadoop-common-2.7.0-mapr-1607.jar"
-				NAME="hadoop-common-2.7.0-mapr-1607.jar" 
-				REQUIRED_IF="(USE_EXISTING_CONNECTION == 'false') AND (DB_VERSION == 'MAPROJAI_5_2')" />
+			<IMPORT MODULE="hadoop-auth-2.7.0-mapr-1710.jar"
+				MVN="mvn:org.talend.libraries/hadoop-auth-2.7.0-mapr-1710/6.0.0"
+				UrlPath="platform:/plugin/org.talend.hadoop.distribution.mapr600.jars/lib/hadoop-auth-2.7.0-mapr-1710.jar"
+				NAME="hadoop-auth-2.7.0-mapr-1710.jar" 
+				REQUIRED_IF="true" />
+			<IMPORT MODULE="hadoop-common-2.7.0-mapr-1710.jar"
+				MVN="mvn:org.talend.libraries/hadoop-common-2.7.0-mapr-1710/6.0.0"
+				UrlPath="platform:/plugin/org.talend.hadoop.distribution.mapr600.jars/lib/hadoop-common-2.7.0-mapr-1710.jar"
+				NAME="hadoop-common-2.7.0-mapr-1710.jar" 
+				REQUIRED_IF="true" />
 				
-			<!-- required for 5.1 & 5.2 -->
+
 			<IMPORT MODULE="log4j-1.2.17.jar" MVN="mvn:org.talend.libraries/log4j-1.2.17/6.0.0"
 				UrlPath="platform:/plugin/org.talend.libraries.apache/lib/log4j-1.2.17.jar"
 				NAME="log4j-1.2.17.jar" REQUIRED_IF="(USE_EXISTING_CONNECTION == 'false')" />
@@ -234,7 +124,7 @@
 				UrlPath="platform:/plugin/org.talend.libraries.apache.common/lib/commons-configuration-1.6.jar"
 				NAME="commons-configuration-1.6.jar" REQUIRED_IF="(USE_EXISTING_CONNECTION == 'false')" />
 			<IMPORT MODULE="commons-lang-2.6.jar"
-				MVN="mvn:org.talend.libraries/ccommons-lang-2.6/6.0.0"
+				MVN="mvn:org.talend.libraries/commons-lang-2.6/6.0.0"
 				UrlPath="platform:/plugin/org.talend.libraries.apache.common/lib/commons-lang-2.6.jar"
 				NAME="commons-lang-2.6.jar" REQUIRED_IF="(USE_EXISTING_CONNECTION == 'false')" />
 			<IMPORT MODULE="zookeeper-3.4.5-mapr-1503.jar"
@@ -266,8 +156,6 @@
 				MVN="mvn:org.talend.libraries/serializer-2.7.1/6.0.0" NAME="serializer-2.7.1.jar"
 				UrlPath="platform:/plugin/org.talend.designer.components.localprovider/components/tWebService/serializer-2.7.1.jar"
 				REQUIRED_IF="(USE_EXISTING_CONNECTION == 'false')" />
-			<!-- IMPORT MODULE="tools-1.7.jar" MVN="mvn:org.talend.libraries/tools-1.7/6.0.0" 
-				REQUIRED_IF="(USE_EXISTING_CONNECTION == 'false')" / -->
 			<IMPORT MODULE="commons-cli-1.2.jar" MVN="mvn:org.talend.libraries/commons-cli-1.2/6.0.0"
 				UrlPath="platform:/plugin/org.talend.libraries.apache.common/lib/commons-cli-1.2.jar"
 				NAME="commons-cli-1.2.jar" REQUIRED_IF="(USE_EXISTING_CONNECTION == 'false')" />
@@ -332,7 +220,5 @@
 		</IMPORTS>
 	</CODEGENERATION>
 	<RETURNS>
-		<RETURN AVAILABILITY="AFTER" NAME="NB_LINE" TYPE="id_Integer" />
-		<RETURN AVAILABILITY="AFTER" NAME="NB_LINE_REJECTED" TYPE="id_Integer" />
-	</RETURNS>
+    </RETURNS>
 </COMPONENT>
