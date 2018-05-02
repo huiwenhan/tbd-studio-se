@@ -22,7 +22,6 @@ imports="
 	String cid = node.getUniqueName();
 	String useExistingConn = ElementParameterParser.getValue(node,"__USE_EXISTING_CONNECTION__");
 	boolean restrictPartialSorts = "true".equalsIgnoreCase(ElementParameterParser.getValue(node,"_RESTRICT_PARTIAL_SORTS_"));
-	
 	String table = ElementParameterParser.getValue(node, "__TABLE__");
   	List<? extends IConnection> outputs = node.getOutgoingSortedConnections();
 	IConnection outConn = null;
@@ -46,10 +45,10 @@ imports="
 	log4jFileUtil.componentStartInfo(node);
 %>
 
-
 	org.apache.hadoop.conf.Configuration conn_<%=cid %> = null;
 	com.mapr.db.Table table_<%=cid %> = null;
-
+	log.info("Inside job. Query : " + <%=query %>);
+    int nb_line_<%=cid %> = 0;
 
 <%
 //INode connNode = "true".equals(useExistingConn) ? ElementParameterParser.getLinkedNodeValue(node, "__CONNECTION__") : node;
@@ -57,7 +56,6 @@ imports="
 	String connection = ElementParameterParser.getValue(node,"__CONNECTION__");
 	String conn = "conn_" + connection;
 %>
-
 
 	conn_<%=cid %> = (org.apache.hadoop.conf.Configuration)globalMap.get("<%=conn %>");
 	//OJAIConnection ojaiCon_<%=cid %> = (OJAIConnection)globalMap.get(ojai_"<%=conn %>");//tOJAIConnection should put connection object here
@@ -73,29 +71,42 @@ imports="
   	}
   	  	
   	table_<%=cid%> = com.mapr.db.MapRDB.getTable(<%=table %>);
-  	org.ojai.DocumentStream rst_<%=cid %> = table_<%=cid %>.findQuery(<%=query %>);//qry_<%=cid %>);
+  	log.info("Table: " + table_<%=cid%>);
+  	log.info("Query: " + <%=query%>);
+  	org.ojai.DocumentStream rst_<%=cid %> = table_<%=cid %>.find();//Query(<%=query %>);//qry_<%=cid %>);
   	java.util.Iterator<org.ojai.Document> itrst_<%=cid %> = rst_<%=cid %>.iterator();
     org.ojai.Document readRecord_<%=cid %>;
+	java.util.Map<String, String> pathMap_<%=cid%>=new java.util.HashMap<String, String>();
+
+<%
+	for (Map<String, String> pathElement : mapping) {// int i=0;i<mapping.size();i++) {
+		String path = pathElement.get("PARENT_NODE_PATH");
+
+		if (path == null || "".equals(path)) {
+			path = "\"\"";
+		}
+		
+		String schemaColumn = pathElement.get("SCHEMA_COLUMN");
+%>
+	pathMap_<%=cid%>.put("<%=schemaColumn%>",<%=path%>);
+<%
+	}
+%>
 
     while (itrst_<%=cid %>.hasNext()) {
+		nb_line_<%=cid %> ++;
+       	readRecord_<%=cid %> = itrst_<%=cid %>.next();
+       	log.info("Readed record: " + readRecord_<%=cid %>);
+		org.ojai.Value valueObj_<%=cid %> = null;
 
 <%
       	columnList = metadata.getListColumns();
        	int sizeColumns = columnList.size();
-%>
 
-       	readRecord_<%=cid %> = itrst_<%=cid %>.next();
+		if (firstConnName.length() > 0) {
 
-
-<%
-		if(firstConnName.length()>0){
-%>
-
-		org.ojai.Value valueObj_<%=cid %>=null;
-
-<%
-			for (int i = 0; i < sizeColumns; i++) {
-				IMetadataColumn column = columnList.get(i);
+			for (IMetadataColumn column : columnList) { //int i = 0; i < sizeColumns; i++) {
+				//IMetadataColumn column = columnList.get(i);
 				String typeToGenerate = JavaTypesManager.getTypeToGenerate(column.getTalendType(), column.isNullable());
 				JavaType javaType = JavaTypesManager.getJavaTypeFromId(column.getTalendType());
 				String patternValue = column.getPattern() == null || column.getPattern().trim().length() == 0 ? null : column.getPattern();
@@ -104,7 +115,7 @@ imports="
         valueObj_<%=cid%> = readRecord_<%=cid%>.getValue(pathMap_<%=cid%>.get("<%=column.getLabel() %>"));
 
 <%
-       			if(javaType == JavaTypesManager.OBJECT) {
+       			if (javaType == JavaTypesManager.OBJECT) {
 %>
 
 		<%=firstConnName %>.<%=column.getLabel() %> = valueObj_<%=cid%> == null ? null : valueObj_<%=cid%>.getObject();
@@ -113,7 +124,7 @@ imports="
           		} else {
 %>
 
-		if(valueObj_<%=cid%>!=null) {
+		if(valueObj_<%=cid%> != null) {
 		
 <%
 					if(javaType == JavaTypesManager.DATE) {
@@ -128,7 +139,7 @@ imports="
 			<%=firstConnName %>.<%=column.getLabel() %> = valueObj_<%=cid%>.getBinary().array();
 			
 <%
-					} else if(javaType == JavaTypesManager.STRING) {
+					} else if (javaType == JavaTypesManager.STRING) {
 %>
 
 			<%=firstConnName %>.<%=column.getLabel() %> = valueObj_<%=cid%>.toString();
@@ -171,4 +182,3 @@ imports="
 			}
 		}
 %>
-	
