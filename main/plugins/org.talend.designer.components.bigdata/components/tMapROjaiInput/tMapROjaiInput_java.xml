@@ -1,11 +1,11 @@
 <COMPONENT>
-<HEADER PLATEFORM="ALL" SERIAL="" VERSION="0.101" STATUS="ALPHA"
+	<HEADER PLATEFORM="ALL" SERIAL="" VERSION="0.100" STATUS="ALPHA"
 		COMPATIBILITY="ALL" AUTHOR="Talend" SCHEMA_AUTO_PROPAGATE="true"
-		DATA_AUTO_PROPAGATE="false" RELEASE_DATE="20180426A" STARTABLE="false"
+		DATA_AUTO_PROPAGATE="false" RELEASE_DATE="20180503A" STARTABLE="true"
 		LOG4J_ENABLED="true"
-		HAS_CONDITIONAL_OUTPUTS="false">
+		HAS_CONDITIONAL_OUTPUTS="true">
 		<SIGNATURE />
-	</HEADER>	
+	</HEADER>
 	<FAMILIES>
 		<FAMILY>Databases NoSQL/MapRDB</FAMILY>
 	</FAMILIES>
@@ -13,23 +13,23 @@
 		<URL />
 	</DOCUMENTATION>
 	<CONNECTORS>
-        <CONNECTOR CTYPE="FLOW" MAX_INPUT="0" MAX_OUTPUT="1"/>
-        <CONNECTOR CTYPE="ITERATE" MAX_OUTPUT="1" MAX_INPUT="1"/>
-        <CONNECTOR CTYPE="SUBJOB_OK" MAX_INPUT="1" />
-        <CONNECTOR CTYPE="SUBJOB_ERROR" MAX_INPUT="1" />
-        <CONNECTOR CTYPE="COMPONENT_OK"/>
-        <CONNECTOR CTYPE="COMPONENT_ERROR"/>
-        <CONNECTOR CTYPE="RUN_IF"/>
+		<CONNECTOR CTYPE="FLOW" MAX_INPUT="0" MAX_OUTPUT="1" />
+		<CONNECTOR CTYPE="ITERATE" MAX_OUTPUT="1" MAX_INPUT="1" />
+		<CONNECTOR CTYPE="SUBJOB_OK" MAX_INPUT="1" />
+		<CONNECTOR CTYPE="SUBJOB_ERROR" MAX_INPUT="1" />
+		<CONNECTOR CTYPE="COMPONENT_OK" />
+		<CONNECTOR CTYPE="COMPONENT_ERROR" />
+		<CONNECTOR CTYPE="RUN_IF" />
 	</CONNECTORS>
 	<PARAMETERS>
-		<PARAMETER NAME="USE_EXISTING_CONNECTION" FIELD="CHECK"	NUM_ROW="10" >
+		<!-- PARAMETER NAME="USE_EXISTING_CONNECTION" FIELD="CHECK"	NUM_ROW="10" >
 			<DEFAULT>false</DEFAULT>
 		</PARAMETER>
 		<PARAMETER NAME="PROPERTY" FIELD="PROPERTY_TYPE" NUM_ROW="11"
 			REPOSITORY_VALUE="NOSQL:MapRDB" NOT_SHOW_IF="USE_EXISTING_CONNECTION == 'true'" />
 		<PARAMETER NAME="CONNECTION" FIELD="COMPONENT_LIST"
 			REQUIRED="true" FILTER="tMapRDBConnection" NUM_ROW="12"
-			SHOW_IF="USE_EXISTING_CONNECTION == 'true'" />
+			SHOW_IF="USE_EXISTING_CONNECTION == 'true'" /-->
 
 		<PARAMETER NAME="SCHEMA" FIELD="SCHEMA_TYPE" NUM_ROW="20">
 			<DEFAULT>""</DEFAULT>
@@ -69,7 +69,9 @@
 			    UrlPath="platform:/plugin/org.talend.hadoop.distribution.mapr600.jars/lib/ojai-2.0-mapr-1710.jar"
 				NAME="ojai-2.0-mapr-1710.jar" REQUIRED_IF="true" />
 
-
+			<IMPORT MODULE="mapr-ojai-driver-6.0.0-mapr.jar" 
+				MVN="mvn:org.talend.libraries/mapr-ojai-driver-6.0.0-mapr/6.0.0" NAME="mapr-ojai-driver-6.0.0-mapr.jar" 
+				REQUIRED_IF="true" />
 
 			<!-- required for 6.0 ? -->
 			<IMPORT MODULE="maprdb-6.0.0-mapr.jar"
@@ -94,7 +96,6 @@
 				UrlPath="platform:/plugin/org.talend.hadoop.distribution.mapr600.jars/lib/hadoop-common-2.7.0-mapr-1710.jar"
 				NAME="hadoop-common-2.7.0-mapr-1710.jar" 
 				REQUIRED_IF="true" />
-				
 
 			<IMPORT MODULE="log4j-1.2.17.jar" MVN="mvn:org.talend.libraries/log4j-1.2.17/6.0.0"
 				UrlPath="platform:/plugin/org.talend.libraries.apache/lib/log4j-1.2.17.jar"
@@ -117,8 +118,8 @@
 			<IMPORT MODULE="protobuf-java-2.5.0.jar"
 				MVN="mvn:org.talend.libraries/protobuf-java-2.5.0/6.0.0" NAME="protobuf-java-2.5.0.jar"
 				REQUIRED_IF="(USE_EXISTING_CONNECTION == 'false')" />
-			<IMPORT MODULE="json-20080701.jar" MVN="mvn:org.talend.libraries/json-20080701/6.0.0"
-				NAME="json-20080701.jar" REQUIRED_IF="(USE_EXISTING_CONNECTION == 'false')" />
+			<IMPORT MODULE="json-20180130.jar" MVN="mvn:org.talend.libraries/json-20180130/6.0.0"
+				NAME="json-20180130.jar" REQUIRED_IF="(USE_EXISTING_CONNECTION == 'false')" />
 			<IMPORT MODULE="commons-configuration-1.6.jar"
 				MVN="mvn:org.talend.libraries/commons-configuration-1.6/6.0.0"
 				UrlPath="platform:/plugin/org.talend.libraries.apache.common/lib/commons-configuration-1.6.jar"

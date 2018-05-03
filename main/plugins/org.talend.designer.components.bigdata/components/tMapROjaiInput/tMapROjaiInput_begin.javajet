@@ -20,13 +20,13 @@ imports="
 	CodeGeneratorArgument codeGenArgument = (CodeGeneratorArgument) argument;
 	INode node = (INode)codeGenArgument.getArgument();
 	String cid = node.getUniqueName();
-	String useExistingConn = ElementParameterParser.getValue(node,"__USE_EXISTING_CONNECTION__");
 	boolean restrictPartialSorts = "true".equalsIgnoreCase(ElementParameterParser.getValue(node,"_RESTRICT_PARTIAL_SORTS_"));
 	String table = ElementParameterParser.getValue(node, "__TABLE__");
   	List<? extends IConnection> outputs = node.getOutgoingSortedConnections();
 	IConnection outConn = null;
 	IMetadataTable metadata = null;
   	String firstConnName = "";
+	boolean isLog4jEnabled = ("true").equals(ElementParameterParser.getValue(node.getProcess(), "__LOG4J_ACTIVATE__"));
 
 	if(outputs!=null && outputs.size()> 0) {
 		outConn = outputs.get(0);
@@ -45,41 +45,26 @@ imports="
 	log4jFileUtil.componentStartInfo(node);
 %>
 
-	org.apache.hadoop.conf.Configuration conn_<%=cid %> = null;
+  	log.info("Query: " + <%=query%>);
 	com.mapr.db.Table table_<%=cid %> = null;
 	log.info("Inside job. Query : " + <%=query %>);
     int nb_line_<%=cid %> = 0;
 
-<%
-//INode connNode = "true".equals(useExistingConn) ? ElementParameterParser.getLinkedNodeValue(node, "__CONNECTION__") : node;
-// use existing connection
-	String connection = ElementParameterParser.getValue(node,"__CONNECTION__");
-	String conn = "conn_" + connection;
-%>
-
-	conn_<%=cid %> = (org.apache.hadoop.conf.Configuration)globalMap.get("<%=conn %>");
-	//OJAIConnection ojaiCon_<%=cid %> = (OJAIConnection)globalMap.get(ojai_"<%=conn %>");//tOJAIConnection should put connection object here
-	
-	if(conn_<%=cid %> == null){
-		throw new RuntimeException("<%=cid %>'s connection is null!");
-	}
-
-  	//org.ojai.store.Query qry_<%=cid %> = ojaiConn_<%=cid %>.newQuery(<%=query %>);//won't work until oji connection is not realized
+	org.ojai.store.Connection conn_<%=cid %> = org.ojai.store.DriverManager.getConnection("ojai:mapr:");
+	org.ojai.store.DocumentStore store_<%=cid %> = conn_<%=cid %>.getStore(<%=table %>);
+  	//org.ojai.store.Query qry_<%=cid %> = conn_<%=cid %>.newQuery(<%=query %>);
   	  	
-  	if (<%=restrictPartialSorts %>) {
+  	//if (<%=restrictPartialSorts %>) {
   		//qry_<%=cid %>.setOption("ojai.mapr.query.force-noncovering-sort", "TRUE");
-  	}
+  	//}
   	  	
-  	table_<%=cid%> = com.mapr.db.MapRDB.getTable(<%=table %>);
-  	log.info("Table: " + table_<%=cid%>);
-  	log.info("Query: " + <%=query%>);
-  	org.ojai.DocumentStream rst_<%=cid %> = table_<%=cid %>.find();//Query(<%=query %>);//qry_<%=cid %>);
+  	org.ojai.DocumentStream rst_<%=cid %> = store_<%=cid %>.find();//Query(qry_<%=cid %>);
   	java.util.Iterator<org.ojai.Document> itrst_<%=cid %> = rst_<%=cid %>.iterator();
     org.ojai.Document readRecord_<%=cid %>;
-	java.util.Map<String, String> pathMap_<%=cid%>=new java.util.HashMap<String, String>();
+	java.util.Map<String, String> pathMap_<%=cid%> = new java.util.HashMap<String, String>();
 
 <%
-	for (Map<String, String> pathElement : mapping) {// int i=0;i<mapping.size();i++) {
+	for (Map<String, String> pathElement : mapping) {
 		String path = pathElement.get("PARENT_NODE_PATH");
 
 		if (path == null || "".equals(path)) {
@@ -175,10 +160,9 @@ imports="
 		} else {
 			<%=firstConnName %>.<%=column.getLabel() %> = <%=JavaTypesManager.getDefaultValueFromJavaType(typeToGenerate)%>;
 		}
-	}
-
 <%
 				}
 			}
 		}
 %>
+		
