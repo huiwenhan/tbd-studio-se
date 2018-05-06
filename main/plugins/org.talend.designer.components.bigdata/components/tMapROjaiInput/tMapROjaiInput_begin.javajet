@@ -45,20 +45,19 @@ imports="
 	log4jFileUtil.componentStartInfo(node);
 %>
 
-  	log.info("Query: " + <%=query%>);
 	com.mapr.db.Table table_<%=cid %> = null;
-	log.info("Inside job. Query : " + <%=query %>);
     int nb_line_<%=cid %> = 0;
 
 	org.ojai.store.Connection conn_<%=cid %> = org.ojai.store.DriverManager.getConnection("ojai:mapr:");
 	org.ojai.store.DocumentStore store_<%=cid %> = conn_<%=cid %>.getStore(<%=table %>);
-  	//org.ojai.store.Query qry_<%=cid %> = conn_<%=cid %>.newQuery(<%=query %>);
+  	org.ojai.store.Query qry_<%=cid %> = conn_<%=cid %>.newQuery();//<%=query %>);
+  	qry_<%=cid %>.select("*").where(<%=query %>).build();
   	  	
-  	//if (<%=restrictPartialSorts %>) {
-  		//qry_<%=cid %>.setOption("ojai.mapr.query.force-noncovering-sort", "TRUE");
-  	//}
+  	if (<%=restrictPartialSorts %>) {
+  		qry_<%=cid %>.setOption("ojai.mapr.query.force-noncovering-sort", "TRUE");
+  	}
   	  	
-  	org.ojai.DocumentStream rst_<%=cid %> = store_<%=cid %>.find();//Query(qry_<%=cid %>);
+  	org.ojai.DocumentStream rst_<%=cid %> = store_<%=cid %>.findQuery(qry_<%=cid %>);
   	java.util.Iterator<org.ojai.Document> itrst_<%=cid %> = rst_<%=cid %>.iterator();
     org.ojai.Document readRecord_<%=cid %>;
 	java.util.Map<String, String> pathMap_<%=cid%> = new java.util.HashMap<String, String>();
@@ -81,7 +80,7 @@ imports="
     while (itrst_<%=cid %>.hasNext()) {
 		nb_line_<%=cid %> ++;
        	readRecord_<%=cid %> = itrst_<%=cid %>.next();
-       	log.info("Readed record: " + readRecord_<%=cid %>);
+       	//log.info("Readed record: " + readRecord_<%=cid %>);
 		org.ojai.Value valueObj_<%=cid %> = null;
 
 <%

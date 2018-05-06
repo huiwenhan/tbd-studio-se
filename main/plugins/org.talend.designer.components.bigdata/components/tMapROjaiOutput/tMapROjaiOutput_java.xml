@@ -53,6 +53,7 @@
             <ITEMS DEFAULT="MAPROJAI_5_2">
                 <ITEM NAME="MAPROJAI_5_1" VALUE="MAPROJAI_5_1"/>
                 <ITEM NAME="MAPROJAI_5_2" VALUE="MAPROJAI_5_2"/>
+                <ITEM NAME="MAPROJAI_6_0" VALUE="MAPROJAI_6_0"/>
             </ITEMS>
         </PARAMETER>
         
@@ -205,7 +206,37 @@
 				NAME="hadoop-common-2.7.0-mapr-1607.jar" 
 				REQUIRED_IF="(USE_EXISTING_CONNECTION == 'false') AND (DB_VERSION == 'MAPROJAI_5_2')" />
 				
-			<!-- required for 5.1 & 5.2 -->
+			<!-- required for 6.0 -->
+			<IMPORT MODULE="ojai-2.0-mapr-1710.jar" MVN="mvn:org.talend.libraries/ojai-2.0-mapr-1710/6.0.0"
+			    UrlPath="platform:/plugin/org.talend.hadoop.distribution.mapr600.jars/lib/ojai-2.0-mapr-1710.jar"
+				NAME="ojai-2.0-mapr-1710.jar" REQUIRED_IF="(USE_EXISTING_CONNECTION == 'false') AND (DB_VERSION == 'MAPROJAI_6_0')"  />
+
+			<IMPORT MODULE="mapr-ojai-driver-6.0.0-mapr.jar" 
+				MVN="mvn:org.talend.libraries/mapr-ojai-driver-6.0.0-mapr/6.0.0" NAME="mapr-ojai-driver-6.0.0-mapr.jar" 
+				REQUIRED_IF="(USE_EXISTING_CONNECTION == 'false') AND (DB_VERSION == 'MAPROJAI_6_0')" />
+
+			<!-- required for 6.0 ? -->
+			<IMPORT MODULE="maprdb-6.0.0-mapr.jar"
+				MVN="mvn:org.talend.libraries/maprdb-6.0.0-mapr/6.0.0" NAME="maprdb-6.0.0-mapr.jar"
+				REQUIRED_IF="(USE_EXISTING_CONNECTION == 'false') AND (DB_VERSION == 'MAPROJAI_6_0')" />
+
+			<IMPORT MODULE="maprfs-6.0.0-mapr.jar"
+				MVN="mvn:org.talend.libraries/maprfs-6.0.0-mapr/6.0.0" NAME="maprfs-6.0.0-mapr.jar"
+				REQUIRED_IF="(USE_EXISTING_CONNECTION == 'false') AND (DB_VERSION == 'MAPROJAI_6_0')" />			
+				
+			<IMPORT MODULE="hadoop-auth-2.7.0-mapr-1710.jar"
+				MVN="mvn:org.talend.libraries/hadoop-auth-2.7.0-mapr-1710/6.0.0"
+				UrlPath="platform:/plugin/org.talend.hadoop.distribution.mapr600.jars/lib/hadoop-auth-2.7.0-mapr-1710.jar"
+				NAME="hadoop-auth-2.7.0-mapr-1710.jar" 
+				REQUIRED_IF="(USE_EXISTING_CONNECTION == 'false') AND (DB_VERSION == 'MAPROJAI_6_0')" />
+			<IMPORT MODULE="hadoop-common-2.7.0-mapr-1710.jar"
+				MVN="mvn:org.talend.libraries/hadoop-common-2.7.0-mapr-1710/6.0.0"
+				UrlPath="platform:/plugin/org.talend.hadoop.distribution.mapr600.jars/lib/hadoop-common-2.7.0-mapr-1710.jar"
+				NAME="hadoop-common-2.7.0-mapr-1710.jar" 
+				REQUIRED_IF="(USE_EXISTING_CONNECTION == 'false') AND (DB_VERSION == 'MAPROJAI_6_0')" />
+				
+				
+			<!-- required for 5.1 & 5.2 & 6.0-->
 			<IMPORT MODULE="log4j-1.2.17.jar" MVN="mvn:org.talend.libraries/log4j-1.2.17/6.0.0"
 				UrlPath="platform:/plugin/org.talend.libraries.apache/lib/log4j-1.2.17.jar"
 				NAME="log4j-1.2.17.jar" REQUIRED_IF="(USE_EXISTING_CONNECTION == 'false')" />
@@ -306,11 +337,11 @@
 				UrlPath="platform:/plugin/org.talend.libraries.slf4j/lib/slf4j-log4j12-1.7.10.jar"
 				REQUIRED_IF="(USE_EXISTING_CONNECTION == 'false')" />
 			<IMPORT MODULE="jackson-core-asl-1.9.14-TALEND.jar"
-				MVN="mvn:org.codehaus.jackson/jackson-core-asl/1.9.14-TALEND" NAME="jackson-core-asl-1.9.14-TALEND.jar"
-				REQUIRED_IF="(USE_EXISTING_CONNECTION == 'false')" />
+				MVN="mvn:org.talend.libraries/jackson-core-asl-1.9.14-TALEND" NAME="jackson-core-asl-1.9.14-TALEND.jar"
+				REQUIRED_IF="true" />
 			<IMPORT MODULE="jackson-mapper-asl-1.9.14-TALEND.jar"
-				MVN="mvn:org.codehaus.jackson/jackson-mapper-asl/1.9.14-TALEND" NAME="jackson-mapper-asl-1.9.14-TALEND.jar"
-				REQUIRED_IF="(USE_EXISTING_CONNECTION == 'false')" />
+				MVN="mvn:org.talend.libraries/jackson-mapper-asl-1.9.14-TALEND" NAME="jackson-mapper-asl-1.9.14-TALEND.jar"
+				REQUIRED_IF="true" />
 			<IMPORT MODULE="gson-2.2.4.jar" MVN="mvn:org.talend.libraries/gson-2.2.4/6.0.0"
 				UrlPath="platform:/plugin/org.talend.libraries.sap/lib/gson-2.2.4.jar"
 				NAME="gson-2.2.4.jar" REQUIRED_IF="(USE_EXISTING_CONNECTION == 'false')" />
