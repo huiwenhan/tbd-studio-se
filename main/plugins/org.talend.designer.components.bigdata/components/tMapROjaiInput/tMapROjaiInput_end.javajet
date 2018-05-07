@@ -16,4 +16,8 @@
 %>
 
 	}
+	
 globalMap.put("<%=cid%>_NB_LINE", nb_line_<%=cid %>);
+rst_<%=cid %>.close();
+store_<%=cid %>.close();
+conn_<%=cid %>.close();
