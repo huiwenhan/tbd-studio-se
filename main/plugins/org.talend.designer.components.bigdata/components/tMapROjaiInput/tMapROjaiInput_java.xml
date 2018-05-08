@@ -26,7 +26,19 @@
 		<PARAMETER NAME="SCHEMA" FIELD="SCHEMA_TYPE" NUM_ROW="20">
 			<DEFAULT>""</DEFAULT>
 		</PARAMETER>
-		<PARAMETER NAME="RESTRICT_PARTIAL_SORTS" FIELD="CHECK" NUM_ROW="22" >
+        <PARAMETER
+            NAME="DB_VERSION"
+            FIELD="CLOSED_LIST"
+            REPOSITORY_VALUE="DB_VERSION"
+            NUM_ROW="25"
+            GROUP="CONNECTION">
+            <ITEMS DEFAULT="MAPROJAI_6_0">
+                <ITEM NAME="MAPROJAI_5_1" VALUE="MAPROJAI_5_1"/>
+                <ITEM NAME="MAPROJAI_5_2" VALUE="MAPROJAI_5_2"/>
+                <ITEM NAME="MAPROJAI_6_0" VALUE="MAPROJAI_6_0"/>
+            </ITEMS>
+        </PARAMETER>
+		<PARAMETER NAME="RESTRICT_PARTIAL_SORTS" FIELD="CHECK" NUM_ROW="28" SHOW_IF="(DB_VERSION != 'MAPROJAI_5_1') AND (DB_VERSION != 'MAPROJAI_5_2')">
 			<DEFAULT>false</DEFAULT>
 		</PARAMETER>
 		
@@ -43,7 +55,8 @@
             NAME="QUERY"
             REQUIRED="true"
             NUM_ROW="41"
-            NB_LINES="5">
+            NB_LINES="5"
+            SHOW_IF="(DB_VERSION != 'MAPROJAI_5_1') AND (DB_VERSION != 'MAPROJAI_5_2')">
             <DEFAULT>"{}"</DEFAULT>
         </PARAMETER>
 

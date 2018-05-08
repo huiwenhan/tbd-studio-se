@@ -21,6 +21,7 @@ imports="
 	INode node = (INode)codeGenArgument.getArgument();
 	String cid = node.getUniqueName();
 	boolean restrictPartialSorts = "true".equalsIgnoreCase(ElementParameterParser.getValue(node,"_RESTRICT_PARTIAL_SORTS_"));
+	String dbVersion = ElementParameterParser.getValue(node, "__DB_VERSION__");
 	String table = ElementParameterParser.getValue(node, "__TABLE__");
 	String fields = ElementParameterParser.getValue(node, "__FIELDS__");
   	List<? extends IConnection> outputs = node.getOutgoingSortedConnections();
@@ -46,26 +47,47 @@ imports="
 	log4jFileUtil.componentStartInfo(node);
 %>
 
-	com.mapr.db.Table table_<%=cid %> = null;
     int nb_line_<%=cid %> = 0;
+  	String fieldList_<%=cid %>[] = <%=fields %>.trim().split("\\s+");
+	org.ojai.DocumentStream rst_<%=cid %> = null;
+
+<%
+	if ("MAPROJAI_5_1".equals(dbVersion) || "MAPROJAI_5_2".equals(dbVersion)) { //OJAI 1.0)
+%>
+	
+	com.mapr.db.Table table_<%=cid %> = com.mapr.db.MapRDB.getTable(<%=table%>);
+		
+	//no json-style condition support in ojai 1.0
+	if (fieldList_<%=cid %>.length > 0) {
+  		rst_<%=cid %> = table_<%=cid %>.find(fieldList_<%=cid %>);
+  	} else {
+  	  	rst_<%=cid %> = table_<%=cid %>.find();
+  	}
+	
+<%
+                   } else { //MAPR 6.0 (OJAI 2.0)
+%>
 
 	org.ojai.store.Connection conn_<%=cid %> = org.ojai.store.DriverManager.getConnection("ojai:mapr:");
 	org.ojai.store.DocumentStore store_<%=cid %> = conn_<%=cid %>.getStore(<%=table %>);
-
   	org.ojai.store.Query qry_<%=cid %> = conn_<%=cid %>.newQuery();
-  	String fieldList_<%=cid %>[] = <%=fields %>.trim().split("\\s+");
   	
   	if (fieldList_<%=cid %>.length > 0) {
   		qry_<%=cid %>.select(fieldList_<%=cid %>);
   	}
   	
-  	qry_<%=cid %>.where(<%=query %>).build();
+  	qry_<%=cid %>.where(<%=query %>).build();//json-style condition support in ojai 2.0 and higher
   	  	
   	if (<%=restrictPartialSorts %>) {
   		qry_<%=cid %>.setOption("ojai.mapr.query.force-noncovering-sort", "TRUE");
   	}
   	  	
-  	org.ojai.DocumentStream rst_<%=cid %> = store_<%=cid %>.findQuery(qry_<%=cid %>);
+  	rst_<%=cid %> = store_<%=cid %>.findQuery(qry_<%=cid %>);
+  	
+<%
+    }
+%>
+
   	java.util.Iterator<org.ojai.Document> itrst_<%=cid %> = rst_<%=cid %>.iterator();
     org.ojai.Document readRecord_<%=cid %>;
 	java.util.Map<String, String> pathMap_<%=cid%> = new java.util.HashMap<String, String>();
