@@ -24,6 +24,10 @@ imports="
 	String dbVersion = ElementParameterParser.getValue(node, "__DB_VERSION__");
 	String table = ElementParameterParser.getValue(node, "__TABLE__");
 	String fields = ElementParameterParser.getValue(node, "__FIELDS__");
+    boolean useKrb = "true".equals(ElementParameterParser.getValue(node, "__USE_KRB__"));
+	boolean useKeytab = "true".equals(ElementParameterParser.getValue(node, "__USE_KEYTAB__"));
+	String userPrincipal = ElementParameterParser.getValue(node, "__PRINCIPAL__");
+	String keytabPath = ElementParameterParser.getValue(node, "__KEYTAB_PATH__");
   	List<? extends IConnection> outputs = node.getOutgoingSortedConnections();
 	IConnection outConn = null;
 	IMetadataTable metadata = null;
@@ -46,6 +50,81 @@ imports="
     query = query.replaceAll("\r","");
 	log4jFileUtil.componentStartInfo(node);
 %>
+
+    <%if(useKrb){%>
+        class ExeCMd_<%=cid%>{
+		    private boolean UsePwd = false;
+		    String message;
+		    
+		    public boolean exec(String[] arg0) throws Exception{
+		        boolean result = true;
+		    
+		        Process process = Runtime.getRuntime().exec(arg0);
+				log.debug("Commend: " + java.util.Arrays.asList(arg0).toString());
+		        if(UsePwd){
+		            java.io.PrintWriter pwout = new java.io.PrintWriter(process.getOutputStream());
+		        <%if(!useKeytab){
+		        String passwordFieldName = "__KERBEROS_PASSWORD__";%>
+		        <%@ include file="@{org.talend.designer.components.localprovider}/components/templates/password.javajet"%>
+		            pwout.println(decryptedPassword_<%=cid%>); 
+		            pwout.flush();
+		        <%}%>
+		        }
+		    
+		        java.io.BufferedReader bufferedReader = new java.io.BufferedReader(new java.io.InputStreamReader(process.getInputStream()));
+		        while ((message = bufferedReader.readLine()) != null) {
+			        System.out.println(message);
+		        }
+		        java.io.BufferedReader bufferedReader2 = new java.io.BufferedReader(new java.io.InputStreamReader(process.getErrorStream()));
+		        while ((message = bufferedReader2.readLine()) != null) {
+			        System.err.println(message);
+			        result = false;
+		        }
+		        process.waitFor();
+		        return result;
+		    }
+		    
+		    public void setUsePwd(boolean usePwd){
+		       UsePwd = usePwd;
+		    }
+		    
+		}
+		
+		ExeCMd_<%=cid%> exeCMd_<%=cid%> = new ExeCMd_<%=cid%>();
+		
+        
+		java.util.ArrayList<String> cmd_<%=cid%> = new java.util.ArrayList<String>();
+		cmd_<%=cid%>.add("kinit");
+		
+		<%if(useKeytab){%>
+		cmd_<%=cid%>.add("-k");
+		cmd_<%=cid%>.add("-t");
+		cmd_<%=cid%>.add(<%=keytabPath%>);
+		<%}else{%>
+		exeCMd_<%=cid%>.setUsePwd(true);
+		<%}%>
+		cmd_<%=cid%>.add(<%=userPrincipal%>);
+		
+		if(!exeCMd_<%=cid%>.exec(cmd_<%=cid%>.toArray(new String[0]))){
+		    throw new RuntimeException("Kerberos Authentication Failed.");
+		}
+		
+		java.util.ArrayList<String> cmd2_<%=cid%> = new java.util.ArrayList<String>();
+		
+		String os_<%=cid%> = System.getProperty("os.name");  
+        if(os_<%=cid%>.toLowerCase().startsWith("win")){  
+           cmd2_<%=cid%>.add("maprlogin.bat");
+        }else{
+           cmd2_<%=cid%>.add("maprlogin");
+        }
+		   cmd2_<%=cid%>.add("kerberos");
+		   
+		boolean loginResult_<%=cid%> = new ExeCMd_<%=cid%>().exec(cmd2_<%=cid%>.toArray(new String[0]));
+		if(!loginResult_<%=cid%>){
+		    throw new RuntimeException("Mapr Login failed. Please see the error log at MAPR_HOME/log for more details");
+		}
+		
+    <%}%>
 
     int nb_line_<%=cid %> = 0;
   	String fieldList_<%=cid %>[] = <%=fields %>.trim().split("\\s+");
@@ -110,7 +189,6 @@ imports="
     while (itrst_<%=cid %>.hasNext()) {
 		nb_line_<%=cid %> ++;
        	readRecord_<%=cid %> = itrst_<%=cid %>.next();
-       	//log.info("Readed record: " + readRecord_<%=cid %>);
 		org.ojai.Value valueObj_<%=cid %> = null;
 
 <%
@@ -119,8 +197,7 @@ imports="
 
 		if (firstConnName.length() > 0) {
 
-			for (IMetadataColumn column : columnList) { //int i = 0; i < sizeColumns; i++) {
-				//IMetadataColumn column = columnList.get(i);
+			for (IMetadataColumn column : columnList) {
 				String typeToGenerate = JavaTypesManager.getTypeToGenerate(column.getTalendType(), column.isNullable());
 				JavaType javaType = JavaTypesManager.getJavaTypeFromId(column.getTalendType());
 				String patternValue = column.getPattern() == null || column.getPattern().trim().length() == 0 ? null : column.getPattern();

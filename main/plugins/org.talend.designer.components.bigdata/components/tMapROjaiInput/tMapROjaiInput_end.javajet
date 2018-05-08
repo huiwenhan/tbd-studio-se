@@ -13,11 +13,22 @@
 	CodeGeneratorArgument codeGenArgument = (CodeGeneratorArgument) argument;
 	INode node = (INode)codeGenArgument.getArgument();
 	String cid = node.getUniqueName();
+	String dbVersion = ElementParameterParser.getValue(node, "__DB_VERSION__");
 %>
 
 	}
 	
 globalMap.put("<%=cid%>_NB_LINE", nb_line_<%=cid %>);
 rst_<%=cid %>.close();
-store_<%=cid %>.close();
-conn_<%=cid %>.close();
+<%
+	if ("MAPROJAI_5_1".equals(dbVersion) || "MAPROJAI_5_2".equals(dbVersion)) { //OJAI 1.0)
+%>
+	table_<%=cid %>.close();
+<%
+                   } else { //MAPR 6.0 (OJAI 2.0)
+%>
+	store_<%=cid %>.close();
+	conn_<%=cid %>.close();
+<%
+    }
+%>

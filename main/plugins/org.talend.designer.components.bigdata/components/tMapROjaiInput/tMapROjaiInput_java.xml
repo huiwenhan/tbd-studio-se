@@ -1,9 +1,7 @@
 <COMPONENT>
 	<HEADER PLATEFORM="ALL" SERIAL="" VERSION="0.100" STATUS="ALPHA"
-		COMPATIBILITY="ALL" AUTHOR="Talend" SCHEMA_AUTO_PROPAGATE="true"
-		DATA_AUTO_PROPAGATE="false" RELEASE_DATE="20180503A" STARTABLE="true"
-		LOG4J_ENABLED="true"
-		HAS_CONDITIONAL_OUTPUTS="true">
+		COMPATIBILITY="ALL" AUTHOR="Talend" RELEASE_DATE="20180503A" STARTABLE="true"
+		LOG4J_ENABLED="true">
 		<SIGNATURE />
 	</HEADER>
 	<FAMILIES>
@@ -14,7 +12,7 @@
 	</DOCUMENTATION>
 	<CONNECTORS>
 		<CONNECTOR CTYPE="FLOW" MAX_INPUT="0" MAX_OUTPUT="1" />
-		<CONNECTOR CTYPE="ITERATE" MAX_OUTPUT="1" MAX_INPUT="1" />
+		<CONNECTOR CTYPE="ITERATE" MAX_OUTPUT="0" MAX_INPUT="1" />
 		<CONNECTOR CTYPE="SUBJOB_OK" MAX_INPUT="1" />
 		<CONNECTOR CTYPE="SUBJOB_ERROR" MAX_INPUT="1" />
 		<CONNECTOR CTYPE="COMPONENT_OK" />
@@ -26,11 +24,42 @@
 		<PARAMETER NAME="SCHEMA" FIELD="SCHEMA_TYPE" NUM_ROW="20">
 			<DEFAULT>""</DEFAULT>
 		</PARAMETER>
+
+   		<!-- kerberos -->
+		<PARAMETER NAME="USE_KRB" FIELD="CHECK" NUM_ROW="21"
+			REPOSITORY_VALUE="USE_KRB" GROUP="AUTHENTICATION">
+			<DEFAULT>false</DEFAULT>
+		</PARAMETER>
+
+		<PARAMETER NAME="PRINCIPAL" REPOSITORY_VALUE="KEYTAB_PRINCIPAL"
+			FIELD="TEXT" REQUIRED="true" NUM_ROW="22" GROUP="AUTHENTICATION"
+			SHOW_IF="((USE_KRB=='true')">
+			<DEFAULT>"hdfs"</DEFAULT>
+		</PARAMETER>
+
+		<PARAMETER NAME="KERBEROS_PASSWORD" FIELD="PASSWORD" GROUP="AUTHENTICATION"
+			REPOSITORY_VALUE="MAPRTICKET_PASSWORD" REQUIRED="true" NUM_ROW="23"
+			SHOW_IF="((USE_KRB=='true') AND (USE_KEYTAB=='false'))">
+			<DEFAULT>""</DEFAULT>
+		</PARAMETER>
+
+		<PARAMETER NAME="USE_KEYTAB" REPOSITORY_VALUE="USE_KEYTAB"
+			FIELD="CHECK" NUM_ROW="24" SHOW_IF="(USE_KRB=='true')" GROUP="AUTHENTICATION">
+			<DEFAULT>false</DEFAULT>
+		</PARAMETER>
+
+		<PARAMETER NAME="KEYTAB_PATH" REPOSITORY_VALUE="KEYTAB_PATH"
+			FIELD="FILE" REQUIRED="true" NUM_ROW="25"
+			SHOW_IF="(USE_KRB=='true') AND (USE_KEYTAB=='true'))" GROUP="AUTHENTICATION">
+			<DEFAULT>"/tmp/hdfs.headless.keytab"</DEFAULT>
+		</PARAMETER>
+
+
         <PARAMETER
             NAME="DB_VERSION"
             FIELD="CLOSED_LIST"
             REPOSITORY_VALUE="DB_VERSION"
-            NUM_ROW="25"
+            NUM_ROW="26"
             GROUP="CONNECTION">
             <ITEMS DEFAULT="MAPROJAI_6_0">
                 <ITEM NAME="MAPROJAI_5_1" VALUE="MAPROJAI_5_1"/>
@@ -76,36 +105,80 @@
 			<!-- required for 6.0 -->
 			<IMPORT MODULE="ojai-2.0-mapr-1710.jar" MVN="mvn:org.talend.libraries/ojai-2.0-mapr-1710/6.0.0"
 			    UrlPath="platform:/plugin/org.talend.hadoop.distribution.mapr600.jars/lib/ojai-2.0-mapr-1710.jar"
-				NAME="ojai-2.0-mapr-1710.jar" REQUIRED_IF="true" />
-
+				NAME="ojai-2.0-mapr-1710.jar" REQUIRED_IF="DB_VERSION == 'MAPROJAI_6_0'" />
 			<IMPORT MODULE="mapr-ojai-driver-6.0.0-mapr.jar" 
 				MVN="mvn:org.talend.libraries/mapr-ojai-driver-6.0.0-mapr/6.0.0" NAME="mapr-ojai-driver-6.0.0-mapr.jar" 
-				REQUIRED_IF="true" />
-
-			<!-- required for 6.0 ? -->
+				REQUIRED_IF="DB_VERSION == 'MAPROJAI_6_0'" />
 			<IMPORT MODULE="maprdb-6.0.0-mapr.jar"
 				MVN="mvn:org.talend.libraries/maprdb-6.0.0-mapr/6.0.0" NAME="maprdb-6.0.0-mapr.jar"
-				REQUIRED_IF="true" />
-
+				REQUIRED_IF="DB_VERSION == 'MAPROJAI_6_0'" />
 			<IMPORT MODULE="maprfs-6.0.0-mapr.jar"
 				MVN="mvn:org.talend.libraries/maprfs-6.0.0-mapr/6.0.0" NAME="maprfs-6.0.0-mapr.jar"
-				REQUIRED_IF="true" />			
-			<!-- IMPORT MODULE="hadoop-annotations-2.7.0-mapr-1710.jar"
-				MVN="mvn:org.talend.libraries/hadoop-annotations-2.7.0-mapr-1710/6.0.0"
-				NAME="hadoop-annotations-2.7.0-mapr-1710.jar" 
-				REQUIRED_IF="true" /--> <!-- Does not exist -->
-				
+				REQUIRED_IF="DB_VERSION == 'MAPROJAI_6_0'" />			
 			<IMPORT MODULE="hadoop-auth-2.7.0-mapr-1710.jar"
 				MVN="mvn:org.talend.libraries/hadoop-auth-2.7.0-mapr-1710/6.0.0"
 				UrlPath="platform:/plugin/org.talend.hadoop.distribution.mapr600.jars/lib/hadoop-auth-2.7.0-mapr-1710.jar"
 				NAME="hadoop-auth-2.7.0-mapr-1710.jar" 
-				REQUIRED_IF="true" />
+				REQUIRED_IF="DB_VERSION == 'MAPROJAI_6_0'" />
 			<IMPORT MODULE="hadoop-common-2.7.0-mapr-1710.jar"
 				MVN="mvn:org.talend.libraries/hadoop-common-2.7.0-mapr-1710/6.0.0"
 				UrlPath="platform:/plugin/org.talend.hadoop.distribution.mapr600.jars/lib/hadoop-common-2.7.0-mapr-1710.jar"
 				NAME="hadoop-common-2.7.0-mapr-1710.jar" 
-				REQUIRED_IF="true" />
+				REQUIRED_IF="DB_VERSION == 'MAPROJAI_6_0'" />
+			<IMPORT MODULE="json-20080701.jar" MVN="mvn:org.talend.libraries/json-20080701/6.0.0"
+				NAME="json-20080701.jar" REQUIRED_IF="DB_VERSION == 'MAPROJAI_6_0'" />
 
+            <!-- required for 5.1 -->
+            <IMPORT MODULE="mapr-java-utils-1.1-mapr.jar"
+				MVN="mvn:org.talend.libraries/mapr-java-utils-5.1.0-mapr/6.0.0" NAME="mapr-java-utils-5.1.0-mapr.jar"
+				REQUIRED_IF="DB_VERSION == 'MAPROJAI_5_1'" />
+			<IMPORT MODULE="maprdb-5.1.0-mapr.jar"
+				MVN="mvn:org.talend.libraries/maprdb-5.1.0-mapr/6.0.0" NAME="maprdb-5.1.0-mapr"
+				REQUIRED_IF="DB_VERSION == 'MAPROJAI_5_1'" />
+			<IMPORT MODULE="maprfs-5.1.0-mapr.jar"
+				MVN="mvn:org.talend.libraries/maprfs-5.1.0-mapr/6.0.0" NAME="maprfs-5.1.0-mapr.jar"
+				REQUIRED_IF="DB_VERSION == 'MAPROJAI_5_1'" />			
+			<IMPORT MODULE="ojai-1.0.jar" MVN="mvn:org.talend.libraries/ojai-1.0/6.0.0"
+				NAME="ojai-1.0.jar" REQUIRED_IF="DB_VERSION == 'MAPROJAI_5_1'" />
+			<IMPORT MODULE="hadoop-annotations-2.7.0-mapr-1602.jar"
+				MVN="mvn:org.talend.libraries/hadoop-annotations-2.7.0-mapr-1602/6.0.0"
+				NAME="hadoop-annotations-2.7.0-mapr-1602.jar" 
+				REQUIRED_IF="DB_VERSION == 'MAPROJAI_5_1'" />
+			<IMPORT MODULE="hadoop-auth-2.7.0-mapr-1602.jar"
+				MVN="mvn:org.talend.libraries/hadoop-auth-2.7.0-mapr-1602/6.0.0"
+				NAME="hadoop-auth-2.7.0-mapr-1602.jar" 
+				REQUIRED_IF="DB_VERSION == 'MAPROJAI_5_1'" />
+			<IMPORT MODULE="hadoop-common-2.7.0-mapr-1602.jar"
+				MVN="mvn:org.talend.libraries/hadoop-common-2.7.0-mapr-1602/6.0.0"
+				NAME="hadoop-common-2.7.0-mapr-1602.jar" 
+				REQUIRED_IF="DB_VERSION == 'MAPROJAI_5_1'" />
+				
+			<!-- required for 5.2 -->
+			<IMPORT MODULE="maprdb-5.2.0-mapr.jar"
+				MVN="mvn:org.talend.libraries/maprdb-5.2.0-mapr/6.0.0" NAME="maprdb-5.2.0-mapr"
+				REQUIRED_IF="DB_VERSION == 'MAPROJAI_5_2'" />
+			<IMPORT MODULE="maprfs-5.2.0-mapr.jar"
+				MVN="mvn:org.talend.libraries/maprfs-5.2.0-mapr/6.0.0" NAME="maprfs-5.2.0-mapr.jar"
+				REQUIRED_IF="DB_VERSION == 'MAPROJAI_5_2'" />			
+			<IMPORT MODULE="ojai-1.1.jar" MVN="mvn:org.talend.libraries/ojai-1.1/6.0.0"
+			    UrlPath="platform:/plugin/org.talend.hadoop.distribution.mapr520.jars/lib/ojai-1.1.jar"
+				NAME="ojai-1.1.jar" REQUIRED_IF="DB_VERSION == 'MAPROJAI_5_2'" />
+			<IMPORT MODULE="hadoop-annotations-2.7.0-mapr-1607.jar"
+				MVN="mvn:org.talend.libraries/hadoop-annotations-2.7.0-mapr-1607/6.0.0"
+				NAME="hadoop-annotations-2.7.0-mapr-1607.jar" 
+				REQUIRED_IF="DB_VERSION == 'MAPROJAI_5_2'" />
+			<IMPORT MODULE="hadoop-auth-2.7.0-mapr-1607.jar"
+				MVN="mvn:org.talend.libraries/hadoop-auth-2.7.0-mapr-1607/6.0.0"
+				UrlPath="platform:/plugin/org.talend.hadoop.distribution.mapr520.jars/lib/hadoop-auth-2.7.0-mapr-1607.jar"
+				NAME="hadoop-auth-2.7.0-mapr-1607.jar" 
+				REQUIRED_IF="DB_VERSION == 'MAPROJAI_5_2'" />
+			<IMPORT MODULE="hadoop-common-2.7.0-mapr-1607.jar"
+				MVN="mvn:org.talend.libraries/hadoop-common-2.7.0-mapr-1607/6.0.0"
+				UrlPath="platform:/plugin/org.talend.hadoop.distribution.mapr520.jars/lib/hadoop-common-2.7.0-mapr-1607.jar"
+				NAME="hadoop-common-2.7.0-mapr-1607.jar" 
+				REQUIRED_IF="DB_VERSION == 'MAPROJAI_5_2'" />
+
+			<!-- required for all -->
 			<IMPORT MODULE="log4j-1.2.17.jar" MVN="mvn:org.talend.libraries/log4j-1.2.17/6.0.0"
 				UrlPath="platform:/plugin/org.talend.libraries.apache/lib/log4j-1.2.17.jar"
 				NAME="log4j-1.2.17.jar" REQUIRED_IF="true" />
@@ -127,10 +200,6 @@
 			<IMPORT MODULE="protobuf-java-2.5.0.jar"
 				MVN="mvn:org.talend.libraries/protobuf-java-2.5.0/6.0.0" NAME="protobuf-java-2.5.0.jar"
 				REQUIRED_IF="true" />
-			<!-- IMPORT MODULE="json-20180130.jar" MVN="mvn:org.talend.libraries/json-20180130/6.0.0"
-				NAME="json-20180130.jar" REQUIRED_IF="true" /-->
-			<IMPORT MODULE="json-20080701.jar" MVN="mvn:org.talend.libraries/json-20080701/6.0.0"
-				NAME="json-20080701.jar" REQUIRED_IF="true" />
 				
 			<IMPORT MODULE="commons-configuration-1.6.jar"
 				MVN="mvn:org.talend.libraries/commons-configuration-1.6/6.0.0"
