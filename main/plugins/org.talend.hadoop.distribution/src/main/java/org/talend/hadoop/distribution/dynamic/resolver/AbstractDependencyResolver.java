@@ -22,8 +22,8 @@ import org.talend.designer.maven.aether.IDynamicMonitor;
 import org.talend.designer.maven.aether.node.DependencyNode;
 import org.talend.designer.maven.aether.util.DynamicDistributionAetherUtils;
 import org.talend.hadoop.distribution.dynamic.DynamicConfiguration;
-import org.talend.hadoop.distribution.dynamic.IDynamicDistributionPreference;
 import org.talend.hadoop.distribution.dynamic.VersionNotFoundException;
+import org.talend.hadoop.distribution.dynamic.pref.IDynamicDistributionPreference;
 
 /**
  * DOC cmeng class global comment. Detailled comment

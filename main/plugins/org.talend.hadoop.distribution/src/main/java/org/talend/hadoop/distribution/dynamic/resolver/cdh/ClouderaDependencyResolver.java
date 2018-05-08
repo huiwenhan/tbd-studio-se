@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
 import org.talend.designer.maven.aether.IDynamicMonitor;
 import org.talend.designer.maven.aether.util.DynamicDistributionAetherUtils;
 import org.talend.hadoop.distribution.dynamic.DynamicConfiguration;
-import org.talend.hadoop.distribution.dynamic.IDynamicDistributionPreference;
+import org.talend.hadoop.distribution.dynamic.pref.IDynamicDistributionPreference;
 import org.talend.hadoop.distribution.dynamic.resolver.AbstractDependencyResolver;
 
 /**
